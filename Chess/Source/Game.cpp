@@ -1,7 +1,7 @@
 #include "Game.h"
 
 Game::Game()
-    : mTickCount{}
+    : mTicksCount{}
     , mIsRunning{true}
 {
 
@@ -87,9 +87,38 @@ void Game::ProcessInput()
 }
 void Game::GenerateOutput()
 {
+    // Set draw color to blue
+    SDL_SetRenderDrawColor(
+        mRenderer,
+        0,		// R
+        0,		// G 
+        255,	// B
+        255		// A
+    );
 
+    // Clear back buffer
+    SDL_RenderClear(mRenderer);
+
+    // Swap front buffer and back buffer
+    SDL_RenderPresent(mRenderer);
 }
 void Game::UpdateGame()
 {
+    // Wait until 16ms has elapsed since last frame
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
+        ;
+
+    // Delta time is the difference in ticks from last frame
+    // (converted to seconds)
+    float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+
+    // Clamp maximum delta time value
+    if (deltaTime > 0.05f)
+    {
+        deltaTime = 0.05f;
+    }
+
+    // Update tick counts (for next frame)
+    mTicksCount = SDL_GetTicks();
 
 }
