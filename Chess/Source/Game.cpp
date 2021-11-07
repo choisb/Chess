@@ -1,10 +1,31 @@
 #include "Game.h"
+#include "Actor.h"
+#include <algorithm>
 
 Game::Game()
     : mTicksCount{}
     , mIsRunning{true}
+    , mUpdatingActors{false}
 {
 
+}
+Game::~Game()
+{
+    // 삭제할 Actor들을 임시 벡터로 이동
+    std::vector<Actor*> deleteActors;
+    for (auto actor : mActors)
+    {
+        if (actor->GetState() == Actor::EDead)
+        {
+            deleteActors.emplace_back(actor);
+        }
+    }
+
+    // 엑터들 삭제
+    for (auto actor : deleteActors)
+    {
+        delete actor;
+    }
 }
 bool Game::Initialize()
 {
@@ -45,7 +66,15 @@ bool Game::Initialize()
         return false;
     }
     
+    LoadData();
+
     return true;
+}
+void Game::LoadData()
+{
+    Actor* a = new Actor(*this);
+    a = new Actor(*this);
+    a = new Actor(*this);
 }
 void Game::Shutdown()
 {
@@ -121,4 +150,56 @@ void Game::UpdateGame()
     // Update tick counts (for next frame)
     mTicksCount = SDL_GetTicks();
 
+    // Actor들 Updated
+    mUpdatingActors = true;
+    for (auto actor : mActors)
+    {
+        actor->Update(deltaTime);
+    }
+    mUpdatingActors = false;
+    // 대기중이던 Actor들을 mActors 벡터로 이동
+    for (auto actor : mPendingActors)
+    {
+        mActors.emplace_back(actor);
+    }
+    mPendingActors.clear();
+
+    // 죽은 Actor들을 임시 벡터로 이동
+    std::vector<Actor*> deadActors;
+    for (auto actor : mActors)
+    {
+        if (actor->GetState() == Actor::EDead)
+        {
+            deadActors.emplace_back(actor);
+        }
+    }
+
+    // 죽은 액터 제거(mActors에서 추려낸 액터들)
+    for (auto actor : deadActors)
+    {
+        delete actor;
+    }
+
+}
+
+void Game::AddActor(Actor* actor)
+{
+    if (mUpdatingActors)
+    {
+        mPendingActors.emplace_back(actor);
+    }
+    else
+    {
+        mActors.emplace_back(actor);
+    }
+}
+void Game::RemoveActor(Actor* target)
+{
+    const auto iter = std::find(mActors.begin(), mActors.end(), target);
+    // mActors에 Remove할 Actor가 존재한다면 swap and pop
+    if (iter != mActors.end())
+    {
+        std::iter_swap(iter, std::prev(mActors.end()));
+        mActors.pop_back();
+    }
 }
