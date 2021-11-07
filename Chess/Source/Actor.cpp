@@ -3,16 +3,16 @@
 Actor::Actor(Game& game) 
     : mGame{ game }
     , mState {EActive}
+    , mLocation {Vector2::Zero}
+    , mScale {0.f}
+    , mRotation {0.f}
 {
     SDL_Log("Actor::Actor()");
 
-    mGame.AddActor(this);
 }
 Actor::~Actor()
 {
-    SDL_Log("Actor::~Actor()");
-
-    mGame.RemoveActor(this);
+    SDL_Log("Actor::~Actor()");    
 }
 void Actor::Update(float deltaTime)
 {
@@ -22,11 +22,7 @@ void Actor::Update(float deltaTime)
 void Actor::UpdateActor(float deltaTime)
 {
     if (mState == EPaused) return;
-    if (mState == EDead)
-    {
-        mGame.RemoveActor(this);
-    }
-    mState = EDead;
+
 }
 void Actor::UpdateComponents(float deltaTime)
 {

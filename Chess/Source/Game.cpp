@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include <algorithm>
 
+int test;
 Game::Game()
     : mTicksCount{}
     , mIsRunning{true}
@@ -11,21 +12,9 @@ Game::Game()
 }
 Game::~Game()
 {
-    // 삭제할 Actor들을 임시 벡터로 이동
-    std::vector<Actor*> deleteActors;
-    for (auto actor : mActors)
-    {
-        if (actor->GetState() == Actor::EDead)
-        {
-            deleteActors.emplace_back(actor);
-        }
-    }
+    // mActors 배열을 비운다. (shared_ptr 이기 때문에 자동으로 삭제)
+    mActors.clear();
 
-    // 엑터들 삭제
-    for (auto actor : deleteActors)
-    {
-        delete actor;
-    }
 }
 bool Game::Initialize()
 {
@@ -72,10 +61,19 @@ bool Game::Initialize()
 }
 void Game::LoadData()
 {
-    Actor* a = new Actor(*this);
-    a = new Actor(*this);
-    a = new Actor(*this);
+    auto a = SpawnActor();
+    a = SpawnActor(); 
+    a = SpawnActor();
 }
+std::weak_ptr<Actor> Game::SpawnActor()
+{
+    std::weak_ptr<Actor> actorWeakPtr;
+    std::shared_ptr<Actor> actorSharedPtr = std::make_shared<Actor>(*this);
+    AddActorToArray(actorSharedPtr);
+    actorWeakPtr = actorSharedPtr;
+    return actorWeakPtr;
+}
+
 void Game::Shutdown()
 {
     SDL_DestroyRenderer(mRenderer);
@@ -157,6 +155,7 @@ void Game::UpdateGame()
         actor->Update(deltaTime);
     }
     mUpdatingActors = false;
+
     // 대기중이던 Actor들을 mActors 벡터로 이동
     for (auto actor : mPendingActors)
     {
@@ -164,42 +163,22 @@ void Game::UpdateGame()
     }
     mPendingActors.clear();
 
-    // 죽은 Actor들을 임시 벡터로 이동
-    std::vector<Actor*> deadActors;
-    for (auto actor : mActors)
-    {
-        if (actor->GetState() == Actor::EDead)
+    // 죽은 Actor들을 삭제 
+    mActors.erase(std::remove_if(mActors.begin(), mActors.end(), 
+        [](const std::shared_ptr<Actor>& actor)
         {
-            deadActors.emplace_back(actor);
-        }
-    }
-
-    // 죽은 액터 제거(mActors에서 추려낸 액터들)
-    for (auto actor : deadActors)
-    {
-        delete actor;
-    }
-
+            return actor->GetState() == Actor::EDead;
+        }), mActors.end());
 }
 
-void Game::AddActor(Actor* actor)
+void Game::AddActorToArray(std::shared_ptr<Actor> actor)
 {
     if (mUpdatingActors)
     {
-        mPendingActors.emplace_back(actor);
+        mPendingActors.push_back(std::move(actor));
     }
     else
     {
-        mActors.emplace_back(actor);
-    }
-}
-void Game::RemoveActor(Actor* target)
-{
-    const auto iter = std::find(mActors.begin(), mActors.end(), target);
-    // mActors에 Remove할 Actor가 존재한다면 swap and pop
-    if (iter != mActors.end())
-    {
-        std::iter_swap(iter, std::prev(mActors.end()));
-        mActors.pop_back();
+        mActors.push_back(std::move(actor));
     }
 }

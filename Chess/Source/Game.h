@@ -14,10 +14,11 @@ public:
     // Shutdown the game
     void Shutdown();
 
-    void AddActor(class Actor* actor);
-    void RemoveActor(Actor* actor);
+    std::weak_ptr<class Actor> SpawnActor();
 
 private:
+    void AddActorToArray(std::shared_ptr<Actor> actor);
+    //void RemoveActor(Actor* actor);
 
     // 게임에 필요한 data들 로딩. Initialize 함수에서 호출됨
     void LoadData();
@@ -26,7 +27,6 @@ private:
     void ProcessInput();
     void UpdateGame();
     void GenerateOutput();
-
 
 
     // Window created by SDL
@@ -40,7 +40,7 @@ private:
     // Actor들이 Update 중인 경우 true 
     bool mUpdatingActors;
 
-    std::vector<Actor*> mActors;
-    std::vector<Actor*> mPendingActors;
-
+    // Actor 원본 포인터를 담고 있는 배열
+    std::vector<std::shared_ptr<Actor>> mActors;
+    std::vector<std::shared_ptr<Actor>> mPendingActors;
 };

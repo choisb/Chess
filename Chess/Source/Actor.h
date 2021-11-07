@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include "Math.h"
 class Actor
 {
 public:
@@ -32,7 +33,12 @@ private:
     Game& mGame;
     // Actor의 상태
     State mState;
+    // Actor의 Transform
+    Vector2 mLocation;
+    float mScale;
+    float mRotation;
 
-    //std::vector<std::shared_ptr<class Component>> mComponents;
+
+    std::vector<std::shared_ptr<class Component>> mComponents;
 };
 
