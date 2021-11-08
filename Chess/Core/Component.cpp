@@ -13,6 +13,10 @@ Component::~Component()
     SDL_Log("~Component()");
 
 }
+void Component::Initialize()
+{
+
+}
 void Component::Update(float deltaTime)
 {
 

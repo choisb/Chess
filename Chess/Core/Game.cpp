@@ -1,8 +1,10 @@
-#include "Game.h"
-#include "Actor.h"
 #include <algorithm>
 
-int test;
+#include "Game.h"
+#include "Actor.h"
+#include "SpriteComponent.h"
+#include "SDL/SDL_image.h"
+
 Game::Game()
     : mTicksCount{}
     , mIsRunning{true}
@@ -14,6 +16,7 @@ Game::~Game()
 {
     // mActors 배열을 비운다. (shared_ptr 이기 때문에 자동으로 삭제)
     mActors.clear();
+    mSpriteComponents.clear();
 
 }
 bool Game::Initialize()
@@ -61,9 +64,16 @@ bool Game::Initialize()
 }
 void Game::LoadData()
 {
-    auto a = SpawnActor();
-    a = SpawnActor(); 
-    a = SpawnActor();
+    auto a = SpawnActor().lock();
+    if (a) a->SetLocation(Vector2(128.f,64.f));
+
+    a = SpawnActor().lock();
+    if (a) a->SetLocation(Vector2(256.f, 64.f));
+
+    a = SpawnActor().lock();
+    if (a) a->SetLocation(Vector2(384.f, 64.f));
+
+
 }
 std::weak_ptr<Actor> Game::SpawnActor()
 {
@@ -117,15 +127,19 @@ void Game::GenerateOutput()
     // Set draw color to blue
     SDL_SetRenderDrawColor(
         mRenderer,
-        0,		// R
-        0,		// G 
-        255,	// B
+        100,		// R
+        100,		// G 
+        100,	// B
         255		// A
     );
 
     // Clear back buffer
     SDL_RenderClear(mRenderer);
 
+    for (auto sprite : mSpriteComponents)
+    {
+        sprite->Draw(mRenderer);
+    }
     // Swap front buffer and back buffer
     SDL_RenderPresent(mRenderer);
 }
@@ -181,4 +195,51 @@ void Game::AddActorToArray(std::shared_ptr<Actor> actor)
     {
         mActors.push_back(std::move(actor));
     }
+}
+// 그려질 순서를 탐색하여 삽입
+void Game::AddSpriteToArray(std::shared_ptr<SpriteComponent> spriteComponent)
+{
+    auto iter = mSpriteComponents.begin();
+    for (; iter != mSpriteComponents.end(); iter++)
+    {
+        if ((*iter)->GetDrawOrder() > spriteComponent->GetDrawOrder())
+            break;
+    }
+    mSpriteComponents.insert(iter, spriteComponent);
+}
+
+SDL_Texture* Game::GetTexture(const std::string& fileName)
+{
+    // 반환할 texture의 주소값을 담을 변수
+    SDL_Texture* tex = nullptr;
+
+    // unordered_map 컨테이너에 저장되어 있는 mTextures에서 fileName으로 검색
+    auto iter = mTextures.find(fileName);
+    // fileName에 해당하는 texture가 존재한다면
+    if (iter != mTextures.end())
+    {
+        tex = iter->second;
+    }
+    else
+    {
+        // 파일로부터 로딩
+        SDL_Surface* surf = IMG_Load(fileName.c_str());
+        if (!surf)
+        {
+            SDL_Log("Failed to load texture file %s", fileName.c_str());
+            return nullptr;
+        }
+
+        // 텍스처 생성
+        tex = SDL_CreateTextureFromSurface(mRenderer, surf);
+        SDL_FreeSurface(surf);
+        if (!tex)
+        {
+            SDL_Log("Failed to convert surface to texture for %s", fileName.c_str());
+            return nullptr;
+        }
+
+        mTextures.emplace(fileName.c_str(), tex);
+    }
+    return tex;
 }

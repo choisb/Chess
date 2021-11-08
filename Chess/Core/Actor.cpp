@@ -1,16 +1,22 @@
 #include "Actor.h"
 #include "Game.h"
 #include "Component.h"
+#include "SpriteComponent.h"
 Actor::Actor(Game& game) 
     : mGame{ game }
     , mState {EActive}
     , mLocation {Vector2::Zero}
-    , mScale {0.f}
+    , mScale {1.f}
     , mRotation {0.f}
 {
     SDL_Log("Actor::Actor()");
-    AddComponent();
-    AddComponent();
+    CreateComponent<Component>();
+    std::shared_ptr<SpriteComponent> spriteComponent = CreateComponent<SpriteComponent>().lock();
+    if (spriteComponent)
+    {
+        spriteComponent->SetTexture(mGame.GetTexture("../Chess/Assets/Imgs/b_bishop_png_shadow_128px.png"));
+    }
+    
 
 }
 Actor::~Actor()
@@ -36,14 +42,7 @@ void Actor::UpdateComponents(float deltaTime)
         component->Update(deltaTime);
     }
 }
-std::weak_ptr<Component> Actor::AddComponent()
-{
-    std::weak_ptr<Component> compWeakPtr;
-    std::shared_ptr<Component> compSharedPtr = std::make_shared<Component>(*this);
-    AddComponentToArray(compSharedPtr);
-    compWeakPtr = compSharedPtr;
-    return compWeakPtr;
-}
+
 // Component의 우선순위대로 벡터에 삽입. (시간복잡도: O(n))
 void Actor::AddComponentToArray(std::shared_ptr<Component> component)
 {

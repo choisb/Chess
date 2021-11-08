@@ -1,7 +1,8 @@
 #pragma once
-#include "SDL/SDL.h"
 #include <memory>
 #include <vector>
+#include <unordered_map>
+#include "SDL/SDL.h"
 class Game
 {
 public:
@@ -14,7 +15,10 @@ public:
     // Shutdown the game
     void Shutdown();
 
+    SDL_Texture* GetTexture(const std::string& fileName);
+
     std::weak_ptr<class Actor> SpawnActor();
+    void AddSpriteToArray(std::shared_ptr<class SpriteComponent> spriteComponent);
 
 private:
     void AddActorToArray(std::shared_ptr<Actor> actor);
@@ -40,7 +44,13 @@ private:
     // Actor들이 Update 중인 경우 true 
     bool mUpdatingActors;
 
+
     // Actor 원본 포인터를 담고 있는 배열
     std::vector<std::shared_ptr<Actor>> mActors;
     std::vector<std::shared_ptr<Actor>> mPendingActors;
+    // Sprite 공유 포인터를 담고 있는 배열
+    std::vector<std::shared_ptr<SpriteComponent>> mSpriteComponents;
+
+    // 텍스처 load를 위한 Map
+    std::unordered_map<std::string, SDL_Texture*> mTextures;
 };
