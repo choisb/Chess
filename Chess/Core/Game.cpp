@@ -4,7 +4,7 @@
 #include "Actor.h"
 #include "SpriteComponent.h"
 #include "SDL/SDL_image.h"
-
+#include "Source/GameManager.h"
 Game::Game()
     : mTicksCount{}
     , mIsRunning{true}
@@ -34,7 +34,7 @@ bool Game::Initialize()
         "Chess 2D", // Window title
         100,	// Top left x-coordinate of window
         100,	// Top left y-coordinate of window
-        1024,	// Width of window
+        768,	// Width of window
         768,	// Height of window
         0		// Flags (0 for no flags set)
     );
@@ -58,30 +58,15 @@ bool Game::Initialize()
         return false;
     }
     
-    LoadData();
+    // Game Mode »ý¼º
+    mGameManager = std::make_unique<GameManager>(*this);
 
+    LoadData();
     return true;
 }
 void Game::LoadData()
 {
-    auto a = SpawnActor().lock();
-    if (a) a->SetLocation(Vector2(128.f,64.f));
 
-    a = SpawnActor().lock();
-    if (a) a->SetLocation(Vector2(256.f, 64.f));
-
-    a = SpawnActor().lock();
-    if (a) a->SetLocation(Vector2(384.f, 64.f));
-
-
-}
-std::weak_ptr<Actor> Game::SpawnActor()
-{
-    std::weak_ptr<Actor> actorWeakPtr;
-    std::shared_ptr<Actor> actorSharedPtr = std::make_shared<Actor>(*this);
-    AddActorToArray(actorSharedPtr);
-    actorWeakPtr = actorSharedPtr;
-    return actorWeakPtr;
 }
 
 void Game::Shutdown()

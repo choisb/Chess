@@ -9,8 +9,9 @@ public:
     SpriteComponent(class Actor& owner, int drawOrder = 100);
     ~SpriteComponent();
     void Initialize() override;
-    virtual void Draw(SDL_Renderer* renderer);
-    virtual void SetTexture(SDL_Texture* texture);
+    void Draw(SDL_Renderer* renderer);
+    void SetTexture(SDL_Texture* texture);
+    void SetDrawOrder(int drawOrder) { mDrawOrder = drawOrder; }
 
     int GetDrawOrder() const { return mDrawOrder; }
     int GetTexHeight() const { return mTexHeight; }

@@ -20,22 +20,24 @@ public:
     Actor(class Game& game);
     virtual ~Actor();
 
+    // 생성직후 호출되는 초기화 함수
+    virtual void Initialize() {};
     // Game에서 호출하는 Update 함수
     void Update(float deltaTime);
-    // Actor에 새로운 Component를 추가하는 함수
-    template<class T>
-    std::weak_ptr<T> CreateComponent();
+    // Actor에 새로운 Component를 생성하는 함수
+    template<class T, class... Param>
+    std::weak_ptr<T> CreateComponent(Param&&... _Val);
 
     //// Getter & Setter
     Game& GetGame() const { return mGame; }
     State GetState() const { return mState; }
-    Vector2 GetLocation() const { return mLocation; }
-    float GetScale() const { return mScale; }
-    float GetRotation() const { return mRotation; }
+    Vector2 GetActorLocation() const { return mLocation; }
+    float GetActorScale() const { return mScale; }
+    float GetActorRotation() const { return mRotation; }
 
-    void SetLocation(Vector2 inLocation) { mLocation = std::move(inLocation); }
-    void SetScale(float inScale) { mScale = inScale; }
-    void SetRotation(float inRotation) { mRotation = inRotation; }
+    void SetActorLocation(Vector2 inLocation) { mLocation = std::move(inLocation); }
+    void SetActorScale(float inScale) { mScale = inScale; }
+    void SetActorRotation(float inRotation) { mRotation = inRotation; }
 protected:
     // 특정 액터에 특화된 업데이트 코드 (오버라이딩 가능)
     virtual void UpdateActor(float deltaTime);
@@ -57,14 +59,13 @@ private:
     std::vector<std::shared_ptr<Component>> mComponents;
 };
 
-template<class T>
-std::weak_ptr<T> Actor::CreateComponent()
+template<class T, class... Param>
+std::weak_ptr<T> Actor::CreateComponent(Param&&... _Args)
 {
     // Component의 파생클래스가 아닐경우 예외처리
-    if (std::is_base_of<Component, T>::value == false)
-        return std::weak_ptr<T>();
+    static_assert(std::is_base_of<Component, T>::value, "Template argument T must be a derived class from the Component class");
     
-    std::shared_ptr<T> tSharedPtr = std::make_shared<T>(*this);
+    std::shared_ptr<T> tSharedPtr = std::make_shared<T>(std::forward<Param>(_Args)...);
     std::weak_ptr<T> tWeakPtr = tSharedPtr;
     std::shared_ptr<Component> compSharedPtr = std::static_pointer_cast<Component>(tSharedPtr);
     compSharedPtr->Initialize();

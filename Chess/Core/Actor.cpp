@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Component.h"
 #include "SpriteComponent.h"
+
 Actor::Actor(Game& game) 
     : mGame{ game }
     , mState {EActive}
@@ -10,14 +11,6 @@ Actor::Actor(Game& game)
     , mRotation {0.f}
 {
     SDL_Log("Actor::Actor()");
-    CreateComponent<Component>();
-    std::shared_ptr<SpriteComponent> spriteComponent = CreateComponent<SpriteComponent>().lock();
-    if (spriteComponent)
-    {
-        spriteComponent->SetTexture(mGame.GetTexture("../Chess/Assets/Imgs/b_bishop_png_shadow_128px.png"));
-    }
-    
-
 }
 Actor::~Actor()
 {

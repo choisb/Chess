@@ -38,18 +38,18 @@ void SpriteComponent::Draw(SDL_Renderer* renderer)
     {
         SDL_Rect r;
         // mOwner의 스케일 값으로 너비/높이 설정
-        r.w = static_cast<int>(mTexWidth * mOwner.GetScale());
-        r.h = static_cast<int>(mTexHeight * mOwner.GetScale());
+        r.w = static_cast<int>(mTexWidth * mOwner.GetActorScale());
+        r.h = static_cast<int>(mTexHeight * mOwner.GetActorScale());
         // 소유자의 위치를 중심으로 사각형 배치
-        r.x = static_cast<int>(mOwner.GetLocation().x - r.w / 2);
-        r.y = static_cast<int>(mOwner.GetLocation().y - r.h / 2);
+        r.x = static_cast<int>(mOwner.GetActorLocation().x - r.w / 2);
+        r.y = static_cast<int>(mOwner.GetActorLocation().y - r.h / 2);
 
         // 스프라이트를 그린다.
         SDL_RenderCopyEx(renderer,
             mTexture,       // 그릴 텍스처
             nullptr,        // 그릴 텍스처의 영역, nullptr이면 전체 영역
             &r,             // 그려질 대상의 사각형 영역
-            -Math::ToDegrees(mOwner.GetRotation()),    // 라디안을 각도로 변환
+            -Math::ToDegrees(mOwner.GetActorRotation()),    // 라디안을 각도로 변환
             nullptr,        // 회전 기준점
             SDL_FLIP_NONE); // 플립 행동
     }

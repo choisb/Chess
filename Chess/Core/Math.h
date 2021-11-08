@@ -35,3 +35,19 @@ public:
     static const Vector2 NegUnitY;
 
 };
+
+class Coordinates2 {
+public:
+    int x;
+    int y;
+
+    Coordinates2() = default;
+    Coordinates2(int inX, int inY) : x(inX), y(inY) {}
+
+    static const Coordinates2 Zero;
+    static const Coordinates2 UnitX;
+    static const Coordinates2 UnitY;
+    static const Coordinates2 NegUnitX;
+    static const Coordinates2 NegUnitY;
+
+};
