@@ -33,14 +33,15 @@ void Piece::Initialize()
     // 기물 위치 초기화 (Next position 갱신 안함. 모든 기물 생성 후 GameManager에서 호출함)
     MovePieceTo(mCurrentPosition, false);
 }
-void Piece::MovePieceTo(Coordinates2 inPosition, bool bIsUpdateAllNextPosition /*= true*/)
+void Piece::MovePieceTo(const Coordinates2& inPosition, bool bIsUpdateAllNextPosition /*= true*/)
 {
     // 현재 칸 UnOccupied
     auto square = mGameManager.GetSquare(mCurrentPosition);
     square->UnOccupied();
 
     // 해당 위치로 이동
-    SetActorLocation(mGameManager.GetActorLocationOf(inPosition));
+    mCurrentPosition = inPosition;
+    SetActorLocation(mGameManager.GetActorLocationOf(mCurrentPosition));
     square = mGameManager.GetSquare(mCurrentPosition);
 
     // 해당 위치 칸에 표시

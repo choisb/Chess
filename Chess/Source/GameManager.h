@@ -15,6 +15,9 @@ public:
 
     // 생성자 직후 호출되는 초기화 함수
     void Initialize();
+    // 소멸되기 직전에 호출되는 함수. 리소스 정리역할
+    void Shutdown();
+    // 좌클릭 입력 받았을 때 호출되는 함수. 좌클릭시 마우스 위치값을 매개변수로 전달 받는다.
     void LeftClickDown(const Coordinates2& position);
     // 매프레임마다 호출되는 UpdateGame 함수
     void UpdateGame(float deltaTime) {};
@@ -22,16 +25,16 @@ public:
     void RemovePiece(const std::shared_ptr<Piece>& target, PieceColor color);
     // 모든 체스 기물들의 NextPosition 갱신. 하나의 기물이 이동할 경우 호출됨
     void UpdateAllNextPositionOfPiece();
-    void Shutdown();
+    // 다음 차례로 턴 toggle
+    void NextTurn() { mbBlackTurn = !mbBlackTurn; }
 
-    void ResetSelectedSquare() { mSelectedSquare.reset(); }
-    void SetSelectedSquare(std::shared_ptr<Square> square) { mSelectedSquare = std::move(square); }
 
-    // setter & getter
+    // Setter & Getter
     Game& GetGame() const { return mGame; }
     Vector2 GetActorLocationOf(const Coordinates2& position);
     std::shared_ptr<Square> GetSquare(const Coordinates2& position) { return mBoard[position.y][position.x]; }
     size_t GetPieceSize() const { return mPieceSize; }
+    bool IsBlackTurn() const { return mbBlackTurn; }
 
 private:
     // 체스 보드 생성
@@ -48,8 +51,8 @@ private:
     Player mBlackPlayer;
     Player mWhitePlayer;
 
-    // 선택된 Square
-    std::weak_ptr<Square> mSelectedSquare;
+    // 게임 순서
+    bool mbBlackTurn;
 
     // 8*8 Square Board
     std::vector<std::vector<std::shared_ptr<Square>>> mBoard;

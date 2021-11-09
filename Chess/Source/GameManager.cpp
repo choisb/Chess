@@ -10,6 +10,7 @@ GameManager::GameManager(Game& game)
     , mPieceSize(64)
     , mBlackPlayer(*this, PieceColor::Black)
     , mWhitePlayer(*this, PieceColor::White)
+    , mbBlackTurn(false)
 {
     CreateBoard();
     mBlackPlayer.CreatePieces();
@@ -70,27 +71,11 @@ void GameManager::LeftClickDown(const Coordinates2& position)
     const int col = static_cast<int>(position.x / mSquareSize);
     const int row = static_cast<int>(position.y / mSquareSize);
 
-    auto prevSquare = mSelectedSquare.lock();
-    // 이전 선택영역과 동일한 경우
-    if (prevSquare == mBoard[row][col])
-    {
-        // 선택 해제
-        prevSquare->UnSelected();
-    }
-    // 이전 선택과 다르고 이전에 선택된 영역이 존재하는 경우
-    else if (prevSquare /*&& prevSquare != mBoard[row][col]*/)
-    {
-        prevSquare->UnSelected();
-        mBoard[row][col]->Selected();
-        mSelectedSquare = mBoard[row][col];
-
-    }
-    // 이전에 선택된 영역이 존재하지 않는경우
-    else /* !prevSquare  && prevSquare != mBoard[row][col]*/
-    {
-        mBoard[row][col]->Selected();
-        mSelectedSquare = mBoard[row][col];
-    }
+    // 클릭된 square를 현재 턴인 player에게 전달
+    if (mbBlackTurn)
+        mBlackPlayer.LeftClickDown(mBoard[row][col]);
+    else
+        mWhitePlayer.LeftClickDown(mBoard[row][col]);
 }
 
 

@@ -5,7 +5,7 @@
 
 class GameManager;
 class Piece;
-
+class Square;
 class Player
 {
 public:
@@ -22,13 +22,21 @@ public:
     // GameManager::UpdateAllNextPositionOfPiece()에서 호출됨
     void UpdateAllNextPositionOfPiece();
 
+    void LeftClickDown(const std::shared_ptr<Square>& square);
 private:
+    // 첫번째 기물 선택
+    void SelectPieceForMove(const std::shared_ptr<Piece>& piece);
+    // 두번째 이동위치 선택
+    void SeletSquareToMove(const std::shared_ptr<Square>& square);
+
     // Game Manager 참조 변수
     GameManager& mGameManager;
     // 플레이어 색상정보
     PieceColor mColor;
-
+    // 현재 선택된 기물
+    std::weak_ptr<Piece> mSelectedPiece;
     // 기물들 배열
     std::vector<std::shared_ptr<Piece>> mPieces;
+
 };
 

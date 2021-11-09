@@ -42,6 +42,18 @@ void Square::Initialize()
     SetActorLocation(Vector2(mColOffset, mRowOffset));
 }
 
+PieceColor Square::GetColor() const
+{
+    if (IsEmpty())
+    {
+        return PieceColor::Default_MAX;
+    }
+    else
+    {
+        return mPiece.lock()->GetColor();
+    }
+}
+
 PieceType Square::GetTypeOfPiece() const
 {
     auto currentPiece = mPiece.lock();
@@ -65,12 +77,10 @@ void Square::Occupied(const std::shared_ptr<Piece>& piece)
 }
 void Square::Selected()
 {
-    mGameManager.SetSelectedSquare(std::move(std::static_pointer_cast<Square>(shared_from_this())));
     mHighlightSprite.lock()->SetAble();
 }
 void Square::UnSelected()
 {
-    mGameManager.ResetSelectedSquare();
     mHighlightSprite.lock()->SetDisable();
 
 }
