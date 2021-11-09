@@ -26,6 +26,7 @@
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\SpriteComponent.cpp" />
     <ClCompile Include="Core\Renderer.cpp" />
+    <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\Piece.cpp" />
     <ClCompile Include="Source\GameManager.cpp" />
     <ClCompile Include="Source\Square.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\SpriteComponent.h" />
     <ClInclude Include="Core\Renderer.h" />
+    <ClInclude Include="Source\Player.h" />
     <ClInclude Include="Source\Piece.h" />
     <ClInclude Include="Source\GameManager.h" />
     <ClInclude Include="Source\PieceTypes.h" />

@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Math.h"
 #include "PieceTypes.h"
+#include "Player.h"
 #include <vector>
 #include <memory>
 class Square;
@@ -16,7 +17,7 @@ public:
     void Initialize();
     void LeftClickDown(const Coordinates2& position);
     // 매프레임마다 호출되는 UpdateGame 함수
-    void UpdateGame(float deltaTime);
+    void UpdateGame(float deltaTime) {};
     // Piece 배열에서 Piece 삭제
     void RemovePiece(const std::shared_ptr<Piece>& target, PieceColor color);
     // 모든 체스 기물들의 NextPosition 갱신. 하나의 기물이 이동할 경우 호출됨
@@ -30,26 +31,29 @@ public:
     Game& GetGame() const { return mGame; }
     Vector2 GetActorLocationOf(const Coordinates2& position);
     std::shared_ptr<Square> GetSquare(const Coordinates2& position) { return mBoard[position.y][position.x]; }
-
+    size_t GetPieceSize() const { return mPieceSize; }
 
 private:
     // 체스 보드 생성
     void CreateBoard();
-    // 체스 기물 생성
-    void CreatePieces();
+
+    // Game 참조변수
     Game& mGame;
     // 칸 하나의 크기(픽셀단위)
     size_t mSquareSize;
     // 기물 하나의 크기(픽셀단위)
     size_t mPieceSize;
+
+    // 두명의 플레이어
+    Player mBlackPlayer;
+    Player mWhitePlayer;
+
     // 선택된 Square
     std::weak_ptr<Square> mSelectedSquare;
 
     // 8*8 Square Board
     std::vector<std::vector<std::shared_ptr<Square>>> mBoard;
-    // 기물들 배열
-    std::vector<std::shared_ptr<Piece>> mBlackPieces;
-    std::vector<std::shared_ptr<Piece>> mWhitePieces;
+
 };
 
 

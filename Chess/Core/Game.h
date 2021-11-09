@@ -27,7 +27,7 @@ public:
     void IncreaseDestroyedComponentCount() { mDestroyedComponentCount++; }
     // 새로운 Actor를 생성하는 함수
     template<class T, class... Param>
-    std::weak_ptr<T> CreateActor(Param&&... _Val);
+    std::shared_ptr<T> CreateActor(Param&&... _Val);
 
     // Getter & Setter
     std::shared_ptr<Renderer> GetRenderer() const { return mRenderer; }
@@ -71,15 +71,13 @@ private:
 };
 
 template<class T, class... Param>
-std::weak_ptr<T> Game::CreateActor(Param&&... _Args)
+std::shared_ptr<T> Game::CreateActor(Param&&... _Args)
 {
     // Actor의 파생클래스가 아닐경우 예외처리
     static_assert(std::is_base_of<Actor, T>::value, "Template argument T must be a derived class from the Actor class");
 
-    std::shared_ptr<T> tSharedPtr = std::make_shared<T>(std::forward<Param>(_Args)...);
-    std::weak_ptr<T> tWeakPtr = tSharedPtr;
-    std::shared_ptr<Actor> actorSharedPtr = std::static_pointer_cast<Actor>(tSharedPtr);
-    actorSharedPtr->Initialize();
-    AddActorToArray(actorSharedPtr);
-    return tWeakPtr;
+    std::shared_ptr<T> actor = std::make_shared<T>(std::forward<Param>(_Args)...);
+    actor->Initialize();
+    AddActorToArray(std::static_pointer_cast<Actor>(actor));
+    return actor;
 }

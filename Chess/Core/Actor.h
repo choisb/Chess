@@ -26,7 +26,7 @@ public:
     void Update(float deltaTime);
     // Actor에 새로운 Component를 생성하는 함수
     template<class T, class... Param>
-    std::weak_ptr<T> CreateComponent(Param&&... _Val);
+    std::shared_ptr<T> CreateComponent(Param&&... _Val);
 
     //// Getter & Setter
     Game& GetGame() const { return mGame; }
@@ -61,15 +61,13 @@ private:
 };
 
 template<class T, class... Param>
-std::weak_ptr<T> Actor::CreateComponent(Param&&... _Args)
+std::shared_ptr<T> Actor::CreateComponent(Param&&... _Args)
 {
     // Component의 파생클래스가 아닐경우 예외처리
     static_assert(std::is_base_of<Component, T>::value, "Template argument T must be a derived class from the Component class");
     
-    std::shared_ptr<T> tSharedPtr = std::make_shared<T>(std::forward<Param>(_Args)...);
-    std::weak_ptr<T> tWeakPtr = tSharedPtr;
-    std::shared_ptr<Component> compSharedPtr = std::static_pointer_cast<Component>(tSharedPtr);
-    compSharedPtr->Initialize();
-    AddComponentToArray(compSharedPtr);
-    return tWeakPtr;
+    std::shared_ptr<T> component = std::make_shared<T>(std::forward<Param>(_Args)...);
+    component->Initialize();
+    AddComponentToArray(std::static_pointer_cast<Component>(component));
+    return component;
 }
