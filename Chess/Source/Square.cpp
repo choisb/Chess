@@ -3,6 +3,7 @@
 #include "Square.h"
 #include "Core/Game.h"
 #include "Core/SpriteComponent.h"
+#include "Core/Renderer.h"
 
 Square::Square(Game& game, Coordinates2 inCoordinates2, size_t size /* = 128*/)
     : Actor(game)
@@ -15,9 +16,9 @@ Square::Square(Game& game, Coordinates2 inCoordinates2, size_t size /* = 128*/)
     if (sc)
     {
         if ((mPosition.x + mPosition.y) % 2 == 0)
-            sc->SetTexture(GetGame().GetTexture("../Chess/Assets/Imgs/square brown light_png_shadow_128px.png"));
+            sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/square brown light_png_shadow_128px.png"));
         else
-            sc->SetTexture(GetGame().GetTexture("../Chess/Assets/Imgs/square brown dark_png_shadow_128px.png"));
+            sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/square brown dark_png_shadow_128px.png"));
 
         const float textureSize = static_cast<float>(sc->GetTexHeight());
         const float newScale = static_cast<float>(size) / textureSize;

@@ -1,6 +1,7 @@
 #include "SpriteComponent.h"
 #include "Actor.h"
 #include "Game.h"
+#include "Renderer.h"
 #include <SDL/SDL.h>
 
 SpriteComponent::SpriteComponent(Actor& owner, int drawOrder)
@@ -23,7 +24,7 @@ SpriteComponent::~SpriteComponent()
 }
 void SpriteComponent::Initialize()
 {
-    mOwner.GetGame().AddSpriteToArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
+    mOwner.GetGame().GetRenderer()->AddSpriteToArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
 }
 void SpriteComponent::SetTexture(SDL_Texture* texture)
 {

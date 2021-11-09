@@ -11,10 +11,12 @@ Actor::Actor(Game& game)
     , mScale {1.f}
     , mRotation {0.f}
 {
+    mGame.IncreaseCreatedActorCount();
     //SDL_Log("Actor::Actor()");
 }
 Actor::~Actor()
 {
+    mGame.IncreaseDestroyedActorCount();
     //SDL_Log("Actor::~Actor()");    
     mComponents.clear();
 }

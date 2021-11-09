@@ -20,6 +20,7 @@ public:
     void RemovePiece(const std::shared_ptr<Piece>& target, Color color);
     // 모든 체스 기물들의 NextPosition 갱신. 하나의 기물이 이동할 경우 호출됨
     void UpdateAllNextPositionOfPiece();
+    void Shutdown();
 
 
     // setter & getter

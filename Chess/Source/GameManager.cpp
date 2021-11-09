@@ -15,7 +15,12 @@ GameManager::GameManager(Game& game)
 GameManager::~GameManager()
 {
 }
-
+void GameManager::Shutdown()
+{
+    mBoard.clear();
+    mBlackPieces.clear();
+    mWhitePieces.clear();
+}
 void GameManager::Initialize()
 {
     // 생성된 모든 기물들의 Next Position을 갱신

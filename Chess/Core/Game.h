@@ -6,6 +6,8 @@
 
 class Actor;
 class SpriteComponent;
+class Renderer;
+class GameManager;
 
 class Game
 {
@@ -19,30 +21,26 @@ public:
     // Shutdown the game
     void Shutdown();
 
+    void IncreaseCreatedActorCount() { mCreatedActorCount++; }
+    void IncreaseCreatedComponentCount() { mCreatedComponentCount++; }
+    void IncreaseDestroyedActorCount() { mDestroyedActorCount++; }
+    void IncreaseDestroyedComponentCount() { mDestroyedComponentCount++; }
     // 새로운 Actor를 생성하는 함수
     template<class T, class... Param>
     std::weak_ptr<T> CreateActor(Param&&... _Val);
 
-    SDL_Texture* GetTexture(const std::string& fileName);
-
-    void AddSpriteToArray(const std::shared_ptr<SpriteComponent>& spriteComponent);
-
+    // Getter & Setter
+    std::shared_ptr<Renderer> GetRenderer() const { return mRenderer; }
 private:
+    // 생성된 Actro를 Actor 배열에 삽입하는 함수
     void AddActorToArray(const std::shared_ptr<Actor>& actor);
-
-    // 게임에 필요한 data들 로딩. Initialize 함수에서 호출됨
-    void LoadData();
-
+    // 모든 Actor들을 갱신하는 함수
+    void UpdateAllActors(float deltaTime);
     // Helper functions for the game loop
     void ProcessInput();
     void UpdateGame();
     void GenerateOutput();
 
-
-    // Window created by SDL
-    SDL_Window* mWindow;
-    // Renderer for 2D drawing
-    SDL_Renderer* mRenderer;
     // Number of ticks since start of game
     Uint32 mTicksCount;
     // Game should continue to run
@@ -50,17 +48,23 @@ private:
     // Actor들이 Update 중인 경우 true 
     bool mUpdatingActors;
 
-
     // Actor 원본 포인터를 담고 있는 배열
     std::vector<std::shared_ptr<Actor>> mActors;
     std::vector<std::shared_ptr<Actor>> mPendingActors;
-    // Sprite 공유 포인터를 담고 있는 배열
-    std::vector<std::shared_ptr<SpriteComponent>> mSpriteComponents;
 
-    // 텍스처 load를 위한 Map
-    std::unordered_map<std::string, SDL_Texture*> mTextures;
-    // 게임을 운영하기 위한 Game mode 
-    std::unique_ptr<class GameManager> mGameManager;
+    // 게임을 운영하기 위한 Game Manager 포인터
+    std::unique_ptr<GameManager> mGameManager;
+    // 렌더러 포인터
+    std::shared_ptr<Renderer> mRenderer;
+
+    // 총 생성된 Actor의 수
+    int mCreatedActorCount{};
+    // 총 생성된 Component의 수
+    int mCreatedComponentCount{};
+    // 총 삭제된 Actor의 수
+    int mDestroyedActorCount{};
+    // 총 삭제된 Component의 수
+    int mDestroyedComponentCount{};
 };
 
 template<class T, class... Param>
