@@ -3,14 +3,15 @@
 #include "SDL/SDL.h"
 
 Component::Component(Actor& owner, int updateOrder)
-    :mOwner(owner)
+    : enable_shared_from_this<Component>()
+    , mOwner(owner)
     , mUpdateOrder(updateOrder)
 {
-    SDL_Log("Component()");
+    //SDL_Log("Component()");
 }
 Component::~Component()
 {
-    SDL_Log("~Component()");
+    //SDL_Log("~Component()");
 
 }
 void Component::Initialize()

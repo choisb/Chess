@@ -4,11 +4,11 @@
 #include <type_traits>
 #include "Math.h"
 
-class Actor
+class Actor : public std::enable_shared_from_this<Actor>
 {
 public:
     // Actor의 상태
-    enum State
+    enum class State
     {
         EActive,
         EPaused,
@@ -38,6 +38,7 @@ public:
     void SetActorLocation(Vector2 inLocation) { mLocation = std::move(inLocation); }
     void SetActorScale(float inScale) { mScale = inScale; }
     void SetActorRotation(float inRotation) { mRotation = inRotation; }
+    void SetState(State inState) { mState = inState; }
 protected:
     // 특정 액터에 특화된 업데이트 코드 (오버라이딩 가능)
     virtual void UpdateActor(float deltaTime);

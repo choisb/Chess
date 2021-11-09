@@ -20,15 +20,15 @@ public:
     void Shutdown();
 
     // 새로운 Actor를 생성하는 함수
-    template<class T, class... _Valty>
-    std::weak_ptr<T> CreateActor(_Valty&&... _Val);
+    template<class T, class... Param>
+    std::weak_ptr<T> CreateActor(Param&&... _Val);
 
     SDL_Texture* GetTexture(const std::string& fileName);
 
-    void AddSpriteToArray(std::shared_ptr<SpriteComponent> spriteComponent);
+    void AddSpriteToArray(const std::shared_ptr<SpriteComponent>& spriteComponent);
 
 private:
-    void AddActorToArray(std::shared_ptr<Actor> actor);
+    void AddActorToArray(const std::shared_ptr<Actor>& actor);
 
     // 게임에 필요한 data들 로딩. Initialize 함수에서 호출됨
     void LoadData();
@@ -60,7 +60,6 @@ private:
     // 텍스처 load를 위한 Map
     std::unordered_map<std::string, SDL_Texture*> mTextures;
     // 게임을 운영하기 위한 Game mode 
-
     std::unique_ptr<class GameManager> mGameManager;
 };
 

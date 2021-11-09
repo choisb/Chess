@@ -60,7 +60,7 @@ bool Game::Initialize()
     
     // Game Mode 생성
     mGameManager = std::make_unique<GameManager>(*this);
-
+    mGameManager->Initialize();
     LoadData();
     return true;
 }
@@ -166,11 +166,14 @@ void Game::UpdateGame()
     mActors.erase(std::remove_if(mActors.begin(), mActors.end(), 
         [](const std::shared_ptr<Actor>& actor)
         {
-            return actor->GetState() == Actor::EDead;
+            return actor->GetState() == Actor::State::EDead;
         }), mActors.end());
+
+    // GameManager 갱신
+    mGameManager->UpdateGame(deltaTime);
 }
 
-void Game::AddActorToArray(std::shared_ptr<Actor> actor)
+void Game::AddActorToArray(const std::shared_ptr<Actor>& actor)
 {
     if (mUpdatingActors)
     {
@@ -182,7 +185,7 @@ void Game::AddActorToArray(std::shared_ptr<Actor> actor)
     }
 }
 // 그려질 순서를 탐색하여 삽입
-void Game::AddSpriteToArray(std::shared_ptr<SpriteComponent> spriteComponent)
+void Game::AddSpriteToArray(const std::shared_ptr<SpriteComponent>& spriteComponent)
 {
     auto iter = mSpriteComponents.begin();
     for (; iter != mSpriteComponents.end(); iter++)

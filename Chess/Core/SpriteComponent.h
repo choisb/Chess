@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "SDL/SDL.h"
 #include <memory>
-class SpriteComponent : public Component, public std::enable_shared_from_this<SpriteComponent>
+class SpriteComponent : public Component
 {
 public:
     // (그리기 순서값이 낮을 수록 더 뒤쪽에 그린다.)

@@ -1,10 +1,12 @@
+#include "Piece.h"
+#include "PieceTypes.h"
 #include "Square.h"
 #include "Core/Game.h"
 #include "Core/SpriteComponent.h"
+
 Square::Square(Game& game, Coordinates2 inCoordinates2, size_t size /* = 128*/)
     : Actor(game)
     , mPosition(std::move(inCoordinates2))
-    , mStateOfOccupy(0)
 {
     // Sprite 그리는 우선순위 50
     if (size != 0) mSpriteComponent = CreateComponent<SpriteComponent>(*this,50);
@@ -25,4 +27,26 @@ Square::Square(Game& game, Coordinates2 inCoordinates2, size_t size /* = 128*/)
 
         SetActorLocation(Vector2(mColOffset, mRowOffset));
     }
+}
+
+PieceType Square::GetTypeOfPiece() const
+{
+    auto currentPiece = mPiece.lock();
+    // 현재 기물이 있는 경우
+    if (currentPiece)
+    {
+        return currentPiece->GetType();
+    }
+    return PieceType::Default_MAX;
+}
+
+void Square::Occupied(const std::shared_ptr<Piece>& piece)
+{
+    auto currentPiece = mPiece.lock();
+    // 현재 기물이 있는 경우
+    if (currentPiece)
+    {
+        currentPiece->BeAttacked();
+    }
+    mPiece = piece; 
 }

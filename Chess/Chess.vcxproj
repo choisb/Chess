@@ -25,7 +25,6 @@
     <ClCompile Include="Core\Game.cpp" />
     <ClCompile Include="Core\Main.cpp" />
     <ClCompile Include="Core\SpriteComponent.cpp" />
-    <ClCompile Include="Source\Pawn.cpp" />
     <ClCompile Include="Source\Piece.cpp" />
     <ClCompile Include="Source\GameManager.cpp" />
     <ClCompile Include="Source\Square.cpp" />
@@ -36,9 +35,9 @@
     <ClInclude Include="Core\Game.h" />
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\SpriteComponent.h" />
-    <ClInclude Include="Source\Pawn.h" />
     <ClInclude Include="Source\Piece.h" />
     <ClInclude Include="Source\GameManager.h" />
+    <ClInclude Include="Source\PieceTypes.h" />
     <ClInclude Include="Source\Square.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

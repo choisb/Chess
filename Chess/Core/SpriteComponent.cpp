@@ -5,7 +5,6 @@
 
 SpriteComponent::SpriteComponent(Actor& owner, int drawOrder)
     : Component(owner)
-    , enable_shared_from_this<SpriteComponent>()
     , mTexture(nullptr)
     , mDrawOrder(drawOrder)
     , mTexWidth(0)
@@ -14,17 +13,17 @@ SpriteComponent::SpriteComponent(Actor& owner, int drawOrder)
     // Sprite component는 Actor의 mCmoponents와 Game의 mSprites 두곳에 모두 저장됨
     // Actor에서 생성할때 mComponents에 추가되고
     // 생성자에서 mSprites에 추가함
-    SDL_Log("SpriteComponent()");
+    //SDL_Log("SpriteComponent()");
 }
 SpriteComponent::~SpriteComponent()
 {
     // Game의 mSpriteComponents와 Actor의 mComponents가 모두 clear될때 자동으로 소멸됨
 
-    SDL_Log("~SpriteComponent()");
+    //SDL_Log("~SpriteComponent()");
 }
 void SpriteComponent::Initialize()
 {
-    mOwner.GetGame().AddSpriteToArray(shared_from_this());
+    mOwner.GetGame().AddSpriteToArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
 }
 void SpriteComponent::SetTexture(SDL_Texture* texture)
 {

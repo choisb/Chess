@@ -1,5 +1,7 @@
 #pragma once
-class Component {
+#include <memory>
+class Component : public std::enable_shared_from_this<Component>
+{
 public:
     // 생성자
     // (업데이트 순서값이 작을 수록 컴포넌트는 더 빨리 갱신된다.)
