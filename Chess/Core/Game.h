@@ -65,6 +65,9 @@ private:
     int mDestroyedActorCount{};
     // 총 삭제된 Component의 수
     int mDestroyedComponentCount{};
+
+    // 이전 프레임 마우스 버튼 상태
+    Uint32 mPrevButtons;
 };
 
 template<class T, class... Param>

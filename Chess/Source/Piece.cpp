@@ -5,7 +5,7 @@
 #include "Core/SpriteComponent.h"
 #include "Core/Game.h"
 
-Piece::Piece(Game& game, GameManager& gameManager, PieceType type, Color inColor, Coordinates2 inPosition, size_t size)
+Piece::Piece(Game& game, GameManager& gameManager, PieceType type, PieceColor inColor, Coordinates2 inPosition, size_t size)
     :Actor(game)
     ,mGameManager(gameManager)
     ,mType(type)
@@ -35,18 +35,20 @@ void Piece::Initialize()
 }
 void Piece::MovePieceTo(Coordinates2 inPosition, bool bIsUpdateAllNextPosition /*= true*/)
 {
-    // TODO: 현재 칸 UnOccupied 해야함.
+    // 현재 칸 UnOccupied
+    auto square = mGameManager.GetSquare(mCurrentPosition);
+    square->UnOccupied();
 
     // 해당 위치로 이동
-    SetActorLocation(mGameManager.GetLocationOf(mCurrentPosition));
-    auto square = mGameManager.GetSquare(mCurrentPosition).lock();
-    if (square)
-    {
-        // 해당 위치 칸에 표시
-        square->Occupied(std::static_pointer_cast<Piece>(shared_from_this()));
-    }
+    SetActorLocation(mGameManager.GetActorLocationOf(inPosition));
+    square = mGameManager.GetSquare(mCurrentPosition);
+
+    // 해당 위치 칸에 표시
+    square->Occupied(std::static_pointer_cast<Piece>(shared_from_this()));
+    
     // UpdateNextPosition이 true일 경우에만 NextPosition을 새롭게 갱신한다.
-    // GameManager 초기화시 bIsUpdateAllNextPosition는 false
+    // GameManager 생성시 bIsUpdateAllNextPosition는 false로 설정.
+    // GameManager 생성 이후 GameManager::Initialize() 함수에서 별도로 UpdateAllNextPositionOfPiece() 함수 호출
     // 일반적인 경우(하나의 기물이 움직일 경우) bIsUpdateAllNextPosition는 true
     if (bIsUpdateAllNextPosition) mGameManager.UpdateAllNextPositionOfPiece();
 }
@@ -58,13 +60,13 @@ void Piece::BeAttacked()
 
 
 // Pawn 구현
-Pawn::Pawn(Game& game, GameManager& gameManager, Color inColor, Coordinates2 inPosition, size_t size /*=128*/)
+Pawn::Pawn(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Pawn, inColor, inPosition, size)
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
     {
-        if (inColor == Color::Black)
+        if (inColor == PieceColor::Black)
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/b_pawn_png_shadow_128px.png"));
         else
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/w_pawn_png_shadow_128px.png"));
@@ -78,13 +80,13 @@ Pawn::~Pawn()
 }
 
 // Knight 구현
-Knight::Knight(Game& game, GameManager& gameManager, Color inColor, Coordinates2 inPosition, size_t size /*=128*/)
+Knight::Knight(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Knight, inColor, inPosition, size)
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
     {
-        if (inColor == Color::Black)
+        if (inColor == PieceColor::Black)
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/b_knight_png_shadow_128px.png"));
         else
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/w_knight_png_shadow_128px.png"));
@@ -98,13 +100,13 @@ Knight::~Knight()
 }
 
 // Bishop 구현
-Bishop::Bishop(Game& game, GameManager& gameManager, Color inColor, Coordinates2 inPosition, size_t size /*=128*/)
+Bishop::Bishop(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Bishop, inColor, inPosition, size)
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
     {
-        if (inColor == Color::Black)
+        if (inColor == PieceColor::Black)
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/b_Bishop_png_shadow_128px.png"));
         else
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/w_Bishop_png_shadow_128px.png"));
@@ -118,13 +120,13 @@ Bishop::~Bishop()
 }
 
 // Rook 구현
-Rook::Rook(Game& game, GameManager& gameManager, Color inColor, Coordinates2 inPosition, size_t size /*=128*/)
+Rook::Rook(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Rook, inColor, inPosition, size)
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
     {
-        if (inColor == Color::Black)
+        if (inColor == PieceColor::Black)
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/b_Rook_png_shadow_128px.png"));
         else
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/w_Rook_png_shadow_128px.png"));
@@ -138,13 +140,13 @@ Rook::~Rook()
 }
 
 // Queen 구현
-Queen::Queen(Game& game, GameManager& gameManager, Color inColor, Coordinates2 inPosition, size_t size /*=128*/)
+Queen::Queen(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Queen, inColor, inPosition, size)
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
     {
-        if (inColor == Color::Black)
+        if (inColor == PieceColor::Black)
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/b_Queen_png_shadow_128px.png"));
         else
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/w_Queen_png_shadow_128px.png"));
@@ -158,13 +160,13 @@ Queen::~Queen()
 }
 
 // King 구현
-King::King(Game& game, GameManager& gameManager, Color inColor, Coordinates2 inPosition, size_t size /*=128*/)
+King::King(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::King, inColor, inPosition, size)
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
     {
-        if (inColor == Color::Black)
+        if (inColor == PieceColor::Black)
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/b_King_png_shadow_128px.png"));
         else
             sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/w_King_png_shadow_128px.png"));

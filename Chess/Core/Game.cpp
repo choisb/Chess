@@ -9,6 +9,7 @@ Game::Game()
     : mTicksCount{}
     , mIsRunning{true}
     , mUpdatingActors{false}
+    , mPrevButtons(0)
 {
 
 }
@@ -71,6 +72,16 @@ void Game::ProcessInput()
     {
         mIsRunning = false;
     }
+
+    // Get state of mouse
+    int x, y;
+    const Uint32 currbuttons = SDL_GetMouseState(&x, &y);
+    if ((currbuttons & SDL_BUTTON_LMASK) != 0 && (mPrevButtons & SDL_BUTTON_LMASK) == 0)
+    {
+        mGameManager->LeftClickDown(Coordinates2(x, y));
+    }
+
+    mPrevButtons = currbuttons;
 }
 void Game::GenerateOutput()
 {

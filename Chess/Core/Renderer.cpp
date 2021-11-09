@@ -16,6 +16,7 @@ bool Renderer::Initialize()
     if (InitializeSDL() == false) return false;
     if (CreateWindow() == false) return false;
     if (CreateSDLRenderer() == false) return false;
+    return true;
 }
 void Renderer::Shutdown()
 {

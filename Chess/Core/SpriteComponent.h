@@ -10,12 +10,18 @@ public:
     ~SpriteComponent();
     void Initialize() override;
     void Draw(SDL_Renderer* renderer);
+    
+    // Setter & Getter
     void SetTexture(SDL_Texture* texture);
     void SetDrawOrder(int drawOrder) { mDrawOrder = drawOrder; }
 
     int GetDrawOrder() const { return mDrawOrder; }
     int GetTexHeight() const { return mTexHeight; }
     int GetTexWidth() const { return mTexWidth; }
+
+    // sprite 활성화 / 비 활성화
+    void SetDisable() { mbIsDraw = false; }
+    void SetAble() { mbIsDraw = true; }
 
 protected:
     // 그릴 텍스처
@@ -25,4 +31,7 @@ protected:
     // 텍스처의 너비 / 높이
     int mTexWidth;
     int mTexHeight;
+
+    // false일경우 그려지지 않는다.
+    bool mbIsDraw;
 };

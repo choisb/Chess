@@ -10,6 +10,7 @@ SpriteComponent::SpriteComponent(Actor& owner, int drawOrder)
     , mDrawOrder(drawOrder)
     , mTexWidth(0)
     , mTexHeight(0)
+    , mbIsDraw(true)
 {
     // Sprite component는 Actor의 mCmoponents와 Game의 mSprites 두곳에 모두 저장됨
     // Actor에서 생성할때 mComponents에 추가되고
@@ -34,6 +35,7 @@ void SpriteComponent::SetTexture(SDL_Texture* texture)
 }
 void SpriteComponent::Draw(SDL_Renderer* renderer)
 {
+    if (mbIsDraw == false) return; // 비활성화일 경우 그리지 않음.
     if (mTexture)
     {
         SDL_Rect r;

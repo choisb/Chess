@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Color {
+enum class PieceColor {
     White, Black, Default_MAX
 };
 enum class PieceType  {
