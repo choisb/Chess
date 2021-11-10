@@ -9,6 +9,7 @@ public:
     SpriteComponent(class Actor& owner, int drawOrder = 100);
     ~SpriteComponent();
     void Initialize() override;
+    void Shutdown() override;
     void Draw(SDL_Renderer* renderer);
     
     // Setter & Getter

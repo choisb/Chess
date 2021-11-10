@@ -12,20 +12,25 @@ SpriteComponent::SpriteComponent(Actor& owner, int drawOrder)
     , mTexHeight(0)
     , mbIsDraw(true)
 {
-    // Sprite component는 Actor의 mCmoponents와 Game의 mSprites 두곳에 모두 저장됨
+    // Sprite component는 Actor의 mCmoponents와 Renderer의 mSprites 두곳에 모두 저장됨
     // Actor에서 생성할때 mComponents에 추가되고
     // 생성자에서 mSprites에 추가함
-    //SDL_Log("SpriteComponent()");
+    CONSTRUCT_LOG();
 }
 SpriteComponent::~SpriteComponent()
 {
     // Game의 mSpriteComponents와 Actor의 mComponents가 모두 clear될때 자동으로 소멸됨
-
-    //SDL_Log("~SpriteComponent()");
+    DESTRUCTOR_LOG();
 }
 void SpriteComponent::Initialize()
 {
+    Component::Initialize();
     mOwner.GetGame().GetRenderer()->AddSpriteToArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
+}
+void SpriteComponent::Shutdown()
+{
+    Component::Shutdown();
+    mOwner.GetGame().GetRenderer()->RemoveSpriteFromArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
 }
 void SpriteComponent::SetTexture(SDL_Texture* texture)
 {

@@ -114,25 +114,36 @@ void Game::UpdateAllActors(float deltaTime)
 {
     // Actor들 Updated
     mUpdatingActors = true;
-    for (auto actor : mActors)
+    for (auto& actor : mActors)
     {
         actor->Update(deltaTime);
     }
     mUpdatingActors = false;
 
     // 대기중이던 Actor들을 mActors 벡터로 이동
-    for (auto actor : mPendingActors)
+    for (auto& actor : mPendingActors)
     {
         mActors.emplace_back(actor);
     }
     mPendingActors.clear();
 
-    // 죽은 Actor들을 삭제 
-    mActors.erase(std::remove_if(mActors.begin(), mActors.end(),
-        [](const std::shared_ptr<Actor>& actor)
+    //죽은 Actor들 Shutdown
+    for (auto& actor : mActors)
+    {
+        if (actor->GetState() == Actor::State::EDead)
+        {
+            actor->Shutdown();
+        }
+    }
+
+    // 죽은 Actor들 탐색 후 제거
+    auto iter = std::remove_if(mActors.begin(), mActors.end(),[](const std::shared_ptr<Actor>& actor)
     {
         return actor->GetState() == Actor::State::EDead;
-    }), mActors.end());
+    });
+    // 죽은 엑터들 배열에서 제거
+    mActors.erase(iter, mActors.end());
+    
 }
 
 

@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "SDL/SDL_image.h"
 #include "SpriteComponent.h"
+#include <algorithm>
 
 Renderer::Renderer(Game& game)
     : mGame(game)
@@ -107,6 +108,13 @@ void Renderer::AddSpriteToArray(const std::shared_ptr<SpriteComponent>& spriteCo
     }
     mSpriteComponents.insert(iter, spriteComponent);
 }
+
+void Renderer::RemoveSpriteFromArray(const std::shared_ptr<SpriteComponent>& spriteComponent)
+{
+    mSpriteComponents.erase(std::remove(mSpriteComponents.begin(), mSpriteComponents.end(), spriteComponent), mSpriteComponents.end());
+}
+
+
 
 SDL_Texture* Renderer::GetTexture(const std::string& fileName)
 {

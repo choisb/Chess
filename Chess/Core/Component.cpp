@@ -8,11 +8,13 @@ Component::Component(Actor& owner, int updateOrder)
     , mOwner(owner)
     , mUpdateOrder(updateOrder)
 {
+    CONSTRUCT_LOG();
     mOwner.GetGame().IncreaseCreatedComponentCount();
     //SDL_Log("Component()");
 }
 Component::~Component()
 {
+    DESTRUCTOR_LOG();
     mOwner.GetGame().IncreaseDestroyedComponentCount();
     //SDL_Log("~Component()");
 }

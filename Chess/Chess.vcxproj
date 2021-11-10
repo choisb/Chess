@@ -35,6 +35,7 @@
     <ClInclude Include="Core\Component.h" />
     <ClInclude Include="Core\Actor.h" />
     <ClInclude Include="Core\Game.h" />
+    <ClInclude Include="Core\Log.h" />
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\SpriteComponent.h" />
     <ClInclude Include="Core\Renderer.h" />

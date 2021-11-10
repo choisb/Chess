@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Component.h"
 #include "SpriteComponent.h"
+#include "Log.h"
 
 Actor::Actor(Game& game) 
     : enable_shared_from_this<Actor>()
@@ -11,14 +12,22 @@ Actor::Actor(Game& game)
     , mScale {1.f}
     , mRotation {0.f}
 {
+    CONSTRUCT_LOG();
     mGame.IncreaseCreatedActorCount();
-    //SDL_Log("Actor::Actor()");
 }
 Actor::~Actor()
 {
+    DESTRUCTOR_LOG();
     mGame.IncreaseDestroyedActorCount();
-    //SDL_Log("Actor::~Actor()");    
+
     mComponents.clear();
+}
+void Actor::Shutdown()
+{
+    for (auto& component : mComponents)
+    {
+        component->Shutdown();
+    }
 }
 void Actor::Update(float deltaTime)
 {

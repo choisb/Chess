@@ -22,6 +22,7 @@ public:
 
     // 생성직후 호출되는 초기화 함수
     virtual void Initialize() {};
+    virtual void Shutdown();
     // Game에서 호출하는 Update 함수
     void Update(float deltaTime);
     // Actor에 새로운 Component를 생성하는 함수

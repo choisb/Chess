@@ -22,6 +22,8 @@ public:
     SDL_Texture* GetTexture(const std::string& fileName);
     // 새로운 Sprite를 배열에 추가하는 함수
     void AddSpriteToArray(const std::shared_ptr<SpriteComponent>& spriteComponent);
+    // 배열에서 Sprite를 제거하는 함수
+    void RemoveSpriteFromArray(const std::shared_ptr<SpriteComponent>& spriteComponent);
 private:
 
     bool InitializeSDL();

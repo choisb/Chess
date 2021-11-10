@@ -8,6 +8,7 @@ public:
     Component(class Actor& owner, int updateOrder = 100);
     // 생성 이후에 초기화를 위한 initialze 함수. Actor::CreatComponent()에서 생성 직후 바로 호출됨
     virtual void Initialize();
+    virtual void Shutdown() {}
 
     // 소멸자
     virtual ~Component();
