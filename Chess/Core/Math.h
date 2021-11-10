@@ -1,11 +1,3 @@
-// ----------------------------------------------------------------
-// From Game Programming in C++ by Sanjay Madhav
-// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-// 
-// Released under the BSD License
-// See LICENSE in root directory for full details.
-// ----------------------------------------------------------------
-
 #pragma once
 
 #include <cmath>
@@ -18,7 +10,47 @@ public:
     int y;
 
     Coordinates2() = default;
-    Coordinates2(int inX, int inY) : x(inX), y(inY) {}
+    explicit Coordinates2(int inX, int inY) : x(inX), y(inY) {}
+
+    // Coordinates2 (a + b)
+    friend Coordinates2 operator+(const Coordinates2& a, const Coordinates2& b)
+    {
+        return Coordinates2(a.x + b.x, a.y + b.y);
+    }
+
+    // Coordinates2 (a - b)
+    friend Coordinates2 operator-(const Coordinates2& a, const Coordinates2& b)
+    {
+        return Coordinates2(a.x - b.x, a.y - b.y);
+    }
+
+    // Scalar multiplication
+    friend Coordinates2 operator*(const Coordinates2& a, int scalar)
+    {
+        return Coordinates2(a.x * scalar, a.y * scalar);
+    }
+
+    // Scalar multiplication
+    friend Coordinates2 operator*(int scalar, const Coordinates2& a)
+    {
+        return Coordinates2(a.x * scalar, a.y * scalar);
+    }
+
+    // Coordinates2 +=
+    Coordinates2& operator+=(const Coordinates2& right)
+    {
+        x += right.x;
+        y += right.y;
+        return *this;
+    }
+
+    // Vector -=
+    Coordinates2& operator-=(const Coordinates2& right)
+    {
+        x -= right.x;
+        y -= right.y;
+        return *this;
+    }
 
     static const Coordinates2 Zero;
     static const Coordinates2 UnitX;
@@ -27,6 +59,22 @@ public:
     static const Coordinates2 NegUnitY;
 
 };
+namespace Math
+{
+    inline int Abs(int value)
+    {
+        return std::abs(value);
+    }
+
+}
+// ----------------------------------------------------------------
+// From Game Programming in C++ by Sanjay Madhav
+// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
+// 
+// Released under the BSD License
+// See LICENSE in root directory for full details.
+// ----------------------------------------------------------------
+
 
 namespace Math
 {

@@ -17,12 +17,10 @@ public:
     void CreatePieces();
     // Pieces 배열에서 기물 하나를 제거하는 함수. 죽은 기물을 정리할 때 사용
     void RemovePiece(const std::shared_ptr<Piece>& target);
-    // 배열에 있는 모든 기물들의 다음 이동가능 위치를 계산.
-    // 일반적으로 맵 위에서 하나의 기물이라도 이동할 경우 모두 재계산함.
-    // GameManager::UpdateAllNextPositionOfPiece()에서 호출됨
-    void UpdateAllNextPositionOfPiece();
-
+    // 해당 플레이어의 차례에 좌클릭이 눌렸을 경우 호출됨
     void LeftClickDown(const std::shared_ptr<Square>& square);
+    // 플레이어의 차례가 시작될 경우 호출됨. 차례가 시작되고 필요한 초기화 기능을 호출할 수 있음.
+    void StartTurn();
 private:
     // 첫번째 기물 선택
     void SelectPieceForMove(const std::shared_ptr<Piece>& piece);

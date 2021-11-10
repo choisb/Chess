@@ -11,6 +11,8 @@ Square::Square(Game& game, GameManager& gameManager, Coordinates2 inCoordinates2
     , mGameManager(gameManager)
     , mPosition(std::move(inCoordinates2))
     , mSize(size)
+    , mbCandidate(false)
+    , mbSelected(false)
 {
     // size가 0보다 작거나 같을 경우 defalut 값으로 초기화
     if (size <= 0) mSize = 128;
@@ -25,15 +27,21 @@ Square::Square(Game& game, GameManager& gameManager, Coordinates2 inCoordinates2
         sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/square brown dark_png_shadow_128px.png"));
 
     // Highlight Sprite 그리는 우선순위는 60
-    mHighlightSprite = CreateComponent<SpriteComponent>(*this, 60);
-    sc = mHighlightSprite.lock();
+    mSeletedSprite = CreateComponent<SpriteComponent>(*this, 60);
+    sc = mSeletedSprite.lock();
     sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/selected_square_128px.png"));
+    sc->SetDisable();
+
+    // Candidate Sprite 그리는 우선순위는 60
+    mCandidatedSprite = CreateComponent<SpriteComponent>(*this, 80);
+    sc = mCandidatedSprite.lock();
+    sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/candidate_square_128px.png"));
     sc->SetDisable();
 }
 void Square::Initialize()
 {
+    //엑터의 크기와 위치 설정
     auto sc = mNormalSprite.lock();
- 
     const float textureSize = static_cast<float>(sc->GetTexHeight());
     const float newScale = static_cast<float>(mSize) / textureSize;
     SetActorScale(newScale);
@@ -77,10 +85,23 @@ void Square::Occupied(const std::shared_ptr<Piece>& piece)
 }
 void Square::Selected()
 {
-    mHighlightSprite.lock()->SetAble();
+    mSeletedSprite.lock()->SetAble();
+    mbSelected = true;
 }
-void Square::UnSelected()
+void Square::Unselected()
 {
-    mHighlightSprite.lock()->SetDisable();
+    mSeletedSprite.lock()->SetDisable();
+    mbSelected = false;
+}
 
+void Square::BeCandidate()
+{
+    mCandidatedSprite.lock()->SetAble();
+    mbCandidate = true;
+}
+
+void Square::CancelCandidate()
+{
+    mCandidatedSprite.lock()->SetDisable();
+    mbCandidate = false;
 }

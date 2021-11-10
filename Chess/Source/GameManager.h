@@ -23,11 +23,10 @@ public:
     void UpdateGame(float deltaTime) {};
     // Piece 배열에서 Piece 삭제
     void RemovePiece(const std::shared_ptr<Piece>& target, PieceColor color);
-    // 모든 체스 기물들의 NextPosition 갱신. 하나의 기물이 이동할 경우 호출됨
-    void UpdateAllNextPositionOfPiece();
     // 다음 차례로 턴 toggle
-    void NextTurn() { mbBlackTurn = !mbBlackTurn; }
-
+    void NextTurn();
+    // Square에 접근 가능한 인덱스인지 확인
+    static bool ValidIndex(const Coordinates2& position);
 
     // Setter & Getter
     Game& GetGame() const { return mGame; }
@@ -35,6 +34,8 @@ public:
     std::shared_ptr<Square> GetSquare(const Coordinates2& position) { return mBoard[position.y][position.x]; }
     size_t GetPieceSize() const { return mPieceSize; }
     bool IsBlackTurn() const { return mbBlackTurn; }
+
+
 
 private:
     // 체스 보드 생성

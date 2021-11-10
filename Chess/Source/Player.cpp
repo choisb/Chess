@@ -65,13 +65,9 @@ void Player::RemovePiece(const std::shared_ptr<Piece>& target)
     mPieces.pop_back();
 }
 
-void Player::UpdateAllNextPositionOfPiece()
-{
-}
 
 void Player::LeftClickDown(const std::shared_ptr<Square>& square)
 {
-    SDL_Log("selected color: %d", static_cast<int>(square->GetColor()));
     // 첫 번째 기물 선택
     if (mSelectedPiece.expired() && mColor == square->GetColor())
     {
@@ -84,25 +80,46 @@ void Player::LeftClickDown(const std::shared_ptr<Square>& square)
     }
 }
 
+void Player::StartTurn()
+{
+    for (auto& piece : mPieces)
+    {
+        piece->StartTurn();
+    }
+}
+
 void Player::SelectPieceForMove(const std::shared_ptr<Piece>& piece)
 {
-    auto square = mGameManager.GetSquare(piece->GetPosition());
-    square->Selected();
+    piece->Selected();
     mSelectedPiece = piece;
-    // TODO: 이동가능 지역 마킹
 }
 
 void Player::SeletSquareToMove(const std::shared_ptr<Square>& square)
 {
-    // TODO: 이동 가능한 지역인지 검증 코드 필요 우선은 무조건 이동으로 구현
-    // 이전 선택지역 UnSelecte
-    auto prevSquare = mGameManager.GetSquare(mSelectedPiece.lock()->GetPosition());
-    prevSquare->UnSelected();
-
-    // 이동 후 턴 종료
-    mSelectedPiece.lock()->MovePieceTo(square->GetPosition());
-    mSelectedPiece.reset();
-    mGameManager.NextTurn();
+    // 선택한 위치가 후보지라면 이동
+    if (square->IsCandidate())
+    {
+        // 이동 후 턴 종료
+        mSelectedPiece.lock()->MovePieceTo(square->GetPosition());
+        mSelectedPiece.reset();
+        mGameManager.NextTurn();
+    }
+    // 선택한 위치가 현재 선택된 위치와 동일하다면 선택 취소
+    else if (square->IsSelected())
+    {
+        mSelectedPiece.lock()->Unselected();
+        mSelectedPiece.reset();
+    }
+    // 선택한 위치가 자신의 다른 기물이라면 선택 변경
+    else if (square->GetColor() == mColor)
+    {
+        mSelectedPiece.lock()->Unselected();
+        mSelectedPiece.reset();
+        SelectPieceForMove(square->GetPiece().lock());
+    }
+    // 그 외에는 아무 동작도 하지 않음
+    else
+        ;
 
 }
 

@@ -27,8 +27,9 @@ void GameManager::Shutdown()
 }
 void GameManager::Initialize()
 {
-    // 생성된 모든 기물들의 Next Position을 갱신
-    UpdateAllNextPositionOfPiece();
+    // White player부터 게임 시작
+    mbBlackTurn = false;
+    mWhitePlayer.StartTurn();
 }
 void GameManager::CreateBoard()
 {
@@ -51,23 +52,33 @@ void GameManager::RemovePiece(const std::shared_ptr<Piece>& target, PieceColor c
         mBlackPlayer.RemovePiece(target);
     else
         mWhitePlayer.RemovePiece(target);
-
-  
+}
+bool GameManager::ValidIndex(const Coordinates2 & position)
+{
+    return (position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8);
 }
 Vector2 GameManager::GetActorLocationOf(const Coordinates2& position)
 {
     return mBoard[position.y][position.x]->GetActorLocation();
 }
 
-void GameManager::UpdateAllNextPositionOfPiece()
+void GameManager::NextTurn()
 {
-    mBlackPlayer.UpdateAllNextPositionOfPiece();
-    mWhitePlayer.UpdateAllNextPositionOfPiece();
+    // 게임 순서 toggle
+    mbBlackTurn = !mbBlackTurn;
+    if (mbBlackTurn)
+    {
+        mBlackPlayer.StartTurn();
+    }
+    else
+    {
+        mWhitePlayer.StartTurn();
+    }
 }
 
 void GameManager::LeftClickDown(const Coordinates2& position)
 {
-    SDL_Log("Left Click (%d, %d)", position.x, position.y);
+    //SDL_Log("Left Click (%d, %d)", position.x, position.y);
     const int col = static_cast<int>(position.x / mSquareSize);
     const int row = static_cast<int>(position.y / mSquareSize);
 
