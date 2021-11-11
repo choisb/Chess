@@ -136,14 +136,14 @@ void Square::ReleaseFromAttackBy(PieceColor color)
 {
     if (color == PieceColor::White)
     {
-        mbAttackedByWhite = true;
+        mbAttackedByWhite = false;
 #if DEBUGGING_ATTACK_SPRITE
         mAttackedByWhiteSprite.lock()->SetDisable();
 #endif
     }
     else
     {
-        mbAttackedByBlack = true;
+        mbAttackedByBlack = false;
 #if DEBUGGING_ATTACK_SPRITE
         mAttackedByBlackSprite.lock()->SetDisable();
 #endif

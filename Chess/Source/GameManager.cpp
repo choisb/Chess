@@ -58,6 +58,19 @@ bool GameManager::ValidIndex(const Coordinates2 & position)
 {
     return (position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8);
 }
+void GameManager::Check(PieceColor color)
+{
+    if (color == PieceColor::Black)
+    {
+        mBlackPlayer.BeCheck();
+        SDL_Log("Black King Check");
+    }
+    else
+    {
+        mWhitePlayer.BeCheck();
+        SDL_Log("White King Check");
+    }
+}
 Vector2 GameManager::GetActorLocationOf(const Coordinates2& position)
 {
     return mBoard[position.y][position.x]->GetActorLocation();

@@ -7,6 +7,7 @@
 Player::Player(GameManager& gameManager, PieceColor color)
     : mGameManager(gameManager)
     , mColor(color)
+    , mbIsCheck(false)
 {
 
 }
@@ -46,10 +47,10 @@ void Player::CreatePieces()
     mPieces.emplace_back(game.CreateActor<Bishop>(game, mGameManager, mColor, Coordinates2(5, majorRow), pieceSize));
 
     // Queen
-    mPieces.emplace_back(game.CreateActor<Queen>(game, mGameManager, mColor, Coordinates2(4, majorRow), pieceSize));
+    mPieces.emplace_back(game.CreateActor<Queen>(game, mGameManager, mColor, Coordinates2(3, majorRow), pieceSize));
     
     // King
-    mPieces.emplace_back(game.CreateActor<King>(game, mGameManager, mColor, Coordinates2(3, majorRow), pieceSize));
+    mPieces.emplace_back(game.CreateActor<King>(game, mGameManager, mColor, Coordinates2(4, majorRow), pieceSize));
 
     // Pawn
     for (int i = 0; i < 8; ++i)
@@ -113,6 +114,16 @@ void Player::EndTurn()
     {
         piece->SearchAttackAndMoveLocation();
     }
+}
+
+void Player::BeCheck()
+{
+    mbIsCheck = true;
+}
+
+void Player::ReleaseCheck()
+{
+    mbIsCheck = false;
 }
 
 void Player::SelectPieceForMove(const std::shared_ptr<Piece>& piece)

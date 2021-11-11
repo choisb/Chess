@@ -39,6 +39,8 @@ public:
     bool IsSelected() const { return mbSelected; }
     // 현재칸의 색상 반환 (비어있을 경우 defalut값 반환)
     PieceColor GetColor() const;
+    // 현재칸에 enemyColor가 공격 하고 있는 상태 반환
+    bool IsAttacked(PieceColor enemyColor) const { return (enemyColor == PieceColor::Black) ? mbAttackedByBlack : mbAttackedByWhite; }
 
 
 

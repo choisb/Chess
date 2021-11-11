@@ -11,12 +11,14 @@ const std::array<Coordinates2, 4> Piece::DiagonalDirections = { Coordinates2(1,1
 
 
 Piece::Piece(Game& game, GameManager& gameManager, PieceType type, PieceColor inColor, Coordinates2 inPosition, size_t size)
-    :Actor(game)
-    ,mGameManager(gameManager)
-    ,mType(type)
-    ,mColor(inColor)
-    ,mCurrentPosition(std::move(inPosition))
-    ,mSize(size)
+    : Actor(game)
+    , mGameManager(gameManager)
+    , mType(type)
+    , mColor(inColor)
+    , mCurrentPosition(std::move(inPosition))
+    , mSize(size)
+    , mbFirstMove(true)
+
 {
     mSpriteComponent = CreateComponent<SpriteComponent>(*this, 70);
 
@@ -72,10 +74,14 @@ void Piece::MovePieceTo(const Coordinates2& nextPosition)
     // 점유 표시
     square->Occupied(std::static_pointer_cast<Piece>(shared_from_this()));
 
+    // 첫번째 움직임 설정
+    mbFirstMove = false;
 }
 
 void Piece::IsDestroyed()
 {
+    ReleaseFromAllAttacks();
+    ReleaseMoveLocation();
     SetState(State::EDead);
     mGameManager.RemovePiece(std::static_pointer_cast<Piece>(shared_from_this()), mColor);
 }
@@ -104,8 +110,12 @@ void Piece::Unselected()
 
 void Piece::AddAttackLocation(const Coordinates2 & position)
 {
-    //TODO: 해당지역에 킹이 있다면 체크 발생
-    mGameManager.GetSquare(position)->BeAttackedBy(mColor);
+    auto square = mGameManager.GetSquare(position);
+    // 공격하는 지역이 적군의 킹이 있는 곳이라면 Check 발생
+    if (square->GetColor() == mEnemyColor && square->GetTypeOfPiece() == PieceType::King)
+        mGameManager.Check(mEnemyColor);
+
+    square->BeAttackedBy(mColor);
     mLocationBeingAttacked.push_back(position);
 }
 
@@ -120,7 +130,7 @@ void Piece::ReleaseFromAllAttacks()
 
 void Piece::AddMoveLocation(const Coordinates2 & position)
 {
-    //TODO: 이동 했을때 체크가 발생하는지 확인
+    // TODO: 이동 가능하다면 즉, 이동했을 때 체크가 발생하지 않는다면 이동
     mMoveLocation.push_back(position);
 }
 
@@ -157,12 +167,16 @@ void Piece::SearchInTheDirection(const Coordinates2 & direction)
     }
 }
 
+bool Piece::CanMoveTo(const Coordinates2 & position)
+{
+    return false;
+}
+
 
 // Pawn 구현
 Pawn::Pawn(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Pawn, inColor, inPosition, size)
     , mMoveDirection(0,1) // 블랙인 경우 (0,1)
-    , mbFirstMove(false)
     , mbMoveTwoSquare(false)
     , mbCanEnpassant(false)
 {
@@ -198,8 +212,6 @@ void Pawn::MovePieceTo(const Coordinates2& nextPosition) /*override*/
     // 이동
     Piece::MovePieceTo(nextPosition);
 
-    // 첫번째 움직임 설정
-    mbFirstMove = true;
     //TODO: 폰 프로모션 기능 추가, UI 기능 구현 후 적용 
 }
 bool Pawn::IsThisMovementEnpassant(const Coordinates2& nextPosition)
@@ -249,7 +261,7 @@ void Pawn::SearchForwardDirection()
     if (GameManager::ValidIndex(forwardMovement) && mGameManager.GetSquare(forwardMovement)->IsEmpty())
     {
         AddMoveLocation(forwardMovement); // 공격은 할 수 없지만 이동은 할 수 있기 때문에 Move 배열에 추가
-        if (mbFirstMove == false) // 한번도 움직인적이 없다면 두칸 움직일 수 있다.
+        if (mbFirstMove == true) // 한번도 움직인적이 없다면 두칸 움직일 수 있다.
         {
             forwardMovement += mMoveDirection;
             if (mGameManager.GetSquare(forwardMovement)->IsEmpty())
@@ -458,12 +470,26 @@ King::~King()
 }
 void King::SearchAttackAndMoveLocation()
 {
-    // 인접위치만 탐색
+    // 인접위치
     for (int i = 0; i < 4; ++i)
     {
         SearchAdjacent(DiagonalDirections[i]); // 대각선 4방향
         SearchAdjacent(StraightDirections[i]); // 직선 4방향
     }
+    // 캐슬링 가능 여부 탐색
+    SearchCastlingKingSide();
+    SearchCastlingQueenSide();
+}
+void King::MovePieceTo(const Coordinates2 & nextPosition)
+{
+    // 두칸 움직였다면 캐슬링
+    if (nextPosition.x - mCurrentPosition.x == 2)
+        DoCastlingKingSide();
+    else if (nextPosition.x - mCurrentPosition.x == -2)
+        DoCastlingQueenSide();
+
+    // 이동
+    Piece::MovePieceTo(nextPosition);
 }
 void King::SearchAdjacent(const Coordinates2& direction)
 {
@@ -482,4 +508,50 @@ void King::SearchAdjacent(const Coordinates2& direction)
             AddMoveLocation(next);
         }
     }
+}
+
+void King::SearchCastlingKingSide()
+{
+    auto KingSquare = mGameManager.GetSquare(mCurrentPosition);
+    if (mbFirstMove == true && KingSquare->IsAttacked(mEnemyColor) == false) // 킹이 한번도 움직인적 없으며, 공격받고 있지 아니하다면
+    {
+        auto Rook = mGameManager.GetSquare(Coordinates2 (7, mCurrentPosition.y))->GetPiece().lock();
+        auto BishopSquare = mGameManager.GetSquare(Coordinates2 (5, mCurrentPosition.y));
+        auto KnightSquare = mGameManager.GetSquare(Coordinates2 (6, mCurrentPosition.y));
+        if (Rook && Rook->GetFirstMove()  // king side에 Rook이 존재하고, 움직인적이 없다면,
+            && BishopSquare->IsEmpty() && !BishopSquare->IsAttacked(mEnemyColor) // 비숍칸이 비어있고, 공격받고 있지 아니하며
+            && KnightSquare->IsEmpty() && !KnightSquare->IsAttacked(mEnemyColor)) // 나이트 칸도 비어있고, 공격받고 있지 아니하다면
+        {
+            AddMoveLocation(Coordinates2(6, mCurrentPosition.y)); // 킹 사이드 나이트 위치로 이동 가능
+        }
+    }
+}
+
+void King::SearchCastlingQueenSide()
+{
+    auto KingSquare = mGameManager.GetSquare(mCurrentPosition);
+    if (mbFirstMove == true && KingSquare->IsAttacked(mEnemyColor) == false) // 킹이 한번도 움직인적 없으며, 공격받고 있지 아니하다면
+    {
+        auto Rook = mGameManager.GetSquare(Coordinates2(0, mCurrentPosition.y))->GetPiece().lock();
+        auto QueenSquare = mGameManager.GetSquare(Coordinates2(3, mCurrentPosition.y));
+        auto BishopSquare = mGameManager.GetSquare(Coordinates2(2, mCurrentPosition.y));
+        if (Rook && Rook->GetFirstMove()  // Queen side에 Rook이 존재하고, 움직인적이 없다면,
+            && QueenSquare->IsEmpty() && !QueenSquare->IsAttacked(mEnemyColor) // 퀸 칸이 비어있고, 공격받고 있지 아니하고
+            && BishopSquare->IsEmpty() && !BishopSquare->IsAttacked(mEnemyColor)) // 비숍칸이 비어있고, 공격받고 있지 아니하다면
+        {
+            AddMoveLocation(Coordinates2(2, mCurrentPosition.y)); // 퀸사이드 비숍 위치로 이동 가능
+        }
+    }
+}
+
+void King::DoCastlingKingSide()
+{
+    auto Rook = mGameManager.GetSquare(Coordinates2(7, mCurrentPosition.y))->GetPiece().lock();
+    Rook->MovePieceTo(Coordinates2(5, mCurrentPosition.y));
+}
+
+void King::DoCastlingQueenSide()
+{
+    auto Rook = mGameManager.GetSquare(Coordinates2(0, mCurrentPosition.y))->GetPiece().lock();
+    Rook->MovePieceTo(Coordinates2(3, mCurrentPosition.y));
 }

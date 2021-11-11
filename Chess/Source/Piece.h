@@ -38,6 +38,7 @@ public:
     // mMoveLocation 배열 초기화
     void ReleaseMoveLocation();
 
+
     // 공격 al가능 지역을 모두 탐색
     virtual void SearchAttackAndMoveLocation() = 0;
 
@@ -47,6 +48,7 @@ public:
     PieceColor GetColor() const { return mColor; }
     Coordinates2 GetPosition() const { return mCurrentPosition; }
     void SetPosition(const Coordinates2& inPosition) { mCurrentPosition = inPosition; }
+    bool GetFirstMove() const { return mbFirstMove; }
 
 protected:
     // GameManager
@@ -61,12 +63,15 @@ protected:
     PieceColor mEnemyColor;
     // 기물의 크기 (픽셀 단위)
     size_t mSize;
-
+    // 첫 움직임만 true, 한번 움직인적 있다면 false
+    bool mbFirstMove;
     // 기물의 sprite
     std::weak_ptr<SpriteComponent> mSpriteComponent;
 
     // 다음 이동위치를 탐색하는 인터페이스 함수. 턴이 시작될때 StartTurn() 함수에 의해서 호출된다.
     void SearchInTheDirection(const Coordinates2& direction);
+    // 해당 위치로 이동 가능한지, 체크가 발생하지 않는지 확인하여 true / false 반환
+    bool CanMoveTo(const Coordinates2& position);
 
     static const std::array<Coordinates2, 4> StraightDirections;
     static const std::array<Coordinates2, 4> DiagonalDirections;
@@ -106,8 +111,6 @@ private:
 
     // 폰의 이동 방향(black일경우 + / whtie 일경우 -)
     Coordinates2 mMoveDirection;
-    // 한 번 움직이면 true
-    bool mbFirstMove;
     // 앙파상 판정을 위해 사용. 두칸 움직였다면 true, 다음 턴 시작될때 false
     bool mbMoveTwoSquare;
     // 이번턴에 앙파상을 시전할 수 있다면 true
@@ -166,8 +169,16 @@ public:
     ~King();
 
     void SearchAttackAndMoveLocation() override;
+    void MovePieceTo(const Coordinates2& nextPosition) override;
 private:
+    // 인접 위치 탐색
     void SearchAdjacent(const Coordinates2& direction);
+    // 캐슬링 탐색
+    void SearchCastlingKingSide();
+    void SearchCastlingQueenSide();
+    // 캐슬링 실행
+    void DoCastlingKingSide();
+    void DoCastlingQueenSide();
 };
 
 

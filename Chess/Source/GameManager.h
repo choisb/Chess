@@ -28,6 +28,8 @@ public:
     void NextTurn();
     // Square에 접근 가능한 인덱스인지 확인
     static bool ValidIndex(const Coordinates2& position);
+    // Check 발생
+    void Check(PieceColor color);
 
     // Setter & Getter
     Game& GetGame() const { return mGame; }

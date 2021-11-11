@@ -23,6 +23,13 @@ public:
     void StartTurn();
     // 플레이어 차례가 종료될때 호출됨. 공격가능 위치와 이동가능 위치 재계산
     void EndTurn();
+    // 킹이 체크될경우 호출
+    void BeCheck();
+    // 킹이 체크에서 해제될 경우 호출
+    void ReleaseCheck();
+
+    // Setter & Getter
+    bool IsCheck() const { return mbIsCheck; }
 private:
     // 첫번째 기물 선택
     void SelectPieceForMove(const std::shared_ptr<Piece>& piece);
@@ -37,6 +44,8 @@ private:
     std::weak_ptr<Piece> mSelectedPiece;
     // 기물들 배열
     std::vector<std::shared_ptr<Piece>> mPieces;
+    // 체크 상태
+    bool mbIsCheck;
 
 };
 
