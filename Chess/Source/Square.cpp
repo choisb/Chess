@@ -13,10 +13,13 @@ Square::Square(Game& game, GameManager& gameManager, Coordinates2 inCoordinates2
     , mSize(size)
     , mbCandidate(false)
     , mbSelected(false)
+    , mbAttackedByBlack(false)
+    , mbAttackedByWhite(false)
 {
     // size가 0보다 작거나 같을 경우 defalut 값으로 초기화
     if (size <= 0) mSize = 128;
 
+    // 체스말 그리는 우선순위가 70
     // NormalSprite 그리는 우선순위 50
     mNormalSprite = CreateComponent<SpriteComponent>(*this,50);
 
@@ -32,11 +35,23 @@ Square::Square(Game& game, GameManager& gameManager, Coordinates2 inCoordinates2
     sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/selected_square_128px.png"));
     sc->SetDisable();
 
-    // Candidate Sprite 그리는 우선순위는 60
-    mCandidatedSprite = CreateComponent<SpriteComponent>(*this, 80);
+    // Candidate Sprite 그리는 우선순위는 90
+    mCandidatedSprite = CreateComponent<SpriteComponent>(*this, 90);
     sc = mCandidatedSprite.lock();
     sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/candidate_square_128px.png"));
     sc->SetDisable();
+
+#if DEBUGGING_ATTACK_SPRITE
+    mAttackedByBlackSprite = CreateComponent<SpriteComponent>(*this, 80);
+    sc = mAttackedByBlackSprite.lock();
+    sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/attacked_by_black_128px.png"));
+    sc->SetDisable();
+
+    mAttackedByWhiteSprite = CreateComponent<SpriteComponent>(*this, 80);
+    sc = mAttackedByWhiteSprite.lock();
+    sc->SetTexture(GetGame().GetRenderer()->GetTexture("../Chess/Assets/Imgs/attacked_by_white_128px.png"));
+    sc->SetDisable();
+#endif
 }
 void Square::Initialize()
 {
@@ -75,12 +90,6 @@ PieceType Square::GetTypeOfPiece() const
 
 void Square::Occupied(const std::shared_ptr<Piece>& piece)
 {
-    auto currentPiece = mPiece.lock();
-    // 현재 기물이 있는 경우
-    if (currentPiece)
-    {
-        currentPiece->BeAttacked();
-    }
     mPiece = piece; 
 }
 void Square::Selected()
@@ -104,4 +113,39 @@ void Square::CancelCandidate()
 {
     mCandidatedSprite.lock()->SetDisable();
     mbCandidate = false;
+}
+void Square::BeAttackedBy(PieceColor color)
+{
+    if (color == PieceColor::Black)
+    {
+        mbAttackedByBlack = true;
+#if DEBUGGING_ATTACK_SPRITE
+        mAttackedByBlackSprite.lock()->SetAble();
+#endif
+    }
+    else
+    {
+        mbAttackedByWhite = true;
+#if DEBUGGING_ATTACK_SPRITE
+        mAttackedByWhiteSprite.lock()->SetAble();
+#endif
+    }
+}
+
+void Square::ReleaseFromAttackBy(PieceColor color)
+{
+    if (color == PieceColor::White)
+    {
+        mbAttackedByWhite = true;
+#if DEBUGGING_ATTACK_SPRITE
+        mAttackedByWhiteSprite.lock()->SetDisable();
+#endif
+    }
+    else
+    {
+        mbAttackedByBlack = true;
+#if DEBUGGING_ATTACK_SPRITE
+        mAttackedByBlackSprite.lock()->SetDisable();
+#endif
+    }
 }

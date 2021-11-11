@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "Component.h"
 #include "SpriteComponent.h"
-#include "Log.h"
+#include "Debugging.h"
 
 Actor::Actor(Game& game) 
     : enable_shared_from_this<Actor>()

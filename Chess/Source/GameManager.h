@@ -4,6 +4,7 @@
 #include "Player.h"
 #include <vector>
 #include <memory>
+
 class Square;
 class Piece;
 

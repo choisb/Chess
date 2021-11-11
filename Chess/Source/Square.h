@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Actor.h"
+#include "Core/Debugging.h"
 #include <memory>
 
 class SpriteComponent;
@@ -25,6 +26,10 @@ public:
     void BeCandidate();
     // 현재 칸이 후보지에서 취소될 때 호출
     void CancelCandidate();
+    // 해당 색상으로부터 공격받을 때 호출됨
+    void BeAttackedBy(PieceColor color);
+    void ReleaseFromAttackBy(PieceColor color);
+
 
     // 빈칸인지 확인
     bool IsEmpty() const { return mPiece.expired(); }
@@ -34,6 +39,8 @@ public:
     bool IsSelected() const { return mbSelected; }
     // 현재칸의 색상 반환 (비어있을 경우 defalut값 반환)
     PieceColor GetColor() const;
+
+
 
     // Getter & Setter
     PieceType GetTypeOfPiece() const;
@@ -51,6 +58,9 @@ private:
     bool mbCandidate;
     // Square가 선택된 경우 true
     bool mbSelected;
+    // Square가 해당 플레이어에게 공격받고 있는 경우 true
+    bool mbAttackedByBlack;
+    bool mbAttackedByWhite;
 
     // Square에 놓여져 있는 기물
     std::weak_ptr<Piece> mPiece;
@@ -60,6 +70,11 @@ private:
     std::weak_ptr<SpriteComponent> mSeletedSprite;
     // Square가 후보지로 선택됐을 때 하이라이팅되는 Sprite
     std::weak_ptr<SpriteComponent> mCandidatedSprite;
+#if DEBUGGING_ATTACK_SPRITE
+    // Square가 각 플레이어에게 공격받고 있을 때 Sprite // 디버깅용
+    std::weak_ptr<SpriteComponent> mAttackedByBlackSprite;
+    std::weak_ptr<SpriteComponent> mAttackedByWhiteSprite;
+#endif
 };
 
 

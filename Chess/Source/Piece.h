@@ -4,6 +4,7 @@
 #include "PieceTypes.h"
 #include <memory>
 #include <vector>
+#include <array>
 
 class SpriteComponent;
 
@@ -13,21 +14,33 @@ public:
     Piece(class Game& game, class GameManager& gameManager, PieceType type, PieceColor color, Coordinates2 position, size_t size);
     ~Piece();
 
-    // 기물을 입력받은 정수 좌표로 이동하는 함수 (bIsUpdateAllNextPosition == false 일 경우 이동 후 갱신 안함)
-    virtual void MovePieceTo(const Coordinates2& nextPosition);
-    // 턴을 시작할때 호출되는 함수
-    virtual void StartTurn();
     // Actor가 생성된 직후 호출되는 상속받은 초기화 함수. 기물의 크기와 위치를 설정
     void Initialize() override;
+    // 기물을 입력받은 정수 좌표로 이동하는 함수 (bIsUpdateAllNextPosition == false 일 경우 이동 후 갱신 안함)
+    virtual void MovePieceTo(const Coordinates2& nextPosition);
+    // 턴이 시작될 때 호출되는 가상함수
+    virtual void StartTurn() {}
     // 기물이 공격받을경우 호출
-    void BeAttacked();
-    // 기물의 색상확인
-    bool IsBlack() const { return mColor == PieceColor::Black; }
-    // 기물이 선택될 경우 호출됨
+    void IsDestroyed();
+
+    // 기물이 선택될 경우 호출됨 (폰을 위한 가상화)
     void Selected();
-    // 기물이 선택 해제될 경우 호출됨
+    // 기물이 선택 해제될 경우 호출됨 (폰을 위한 가상화)
     void Unselected();
-    
+
+    // 해당 지역을 공격한다.
+    void AddAttackLocation(const Coordinates2& position);
+    // 폰의 mOnlyMoveLocation 초기화를 위해 가상화
+    void ReleaseFromAllAttacks();
+
+    // 폰의 이동 배열에 추가하는 함수
+    void AddMoveLocation(const Coordinates2& position);
+    // mMoveLocation 배열 초기화
+    void ReleaseMoveLocation();
+
+    // 공격 al가능 지역을 모두 탐색
+    virtual void SearchAttackAndMoveLocation() = 0;
+
     // Getter & Setter
     std::weak_ptr<SpriteComponent> GetSpriteComponent() const { return mSpriteComponent; }
     PieceType GetType() const { return mType; }
@@ -49,13 +62,20 @@ protected:
     // 기물의 크기 (픽셀 단위)
     size_t mSize;
 
-    // 기물이 다음 이동 가능한 위치
-    std::vector<Coordinates2> mNextPosition;
     // 기물의 sprite
     std::weak_ptr<SpriteComponent> mSpriteComponent;
 
-    // 다음 이동위치를 갱신하는 인터페이스 함수. 턴이 시작될때 StartTurn() 함수에 의해서 호출된다.
-    virtual void UpdateNextPosition() = 0;
+    // 다음 이동위치를 탐색하는 인터페이스 함수. 턴이 시작될때 StartTurn() 함수에 의해서 호출된다.
+    void SearchInTheDirection(const Coordinates2& direction);
+
+    static const std::array<Coordinates2, 4> StraightDirections;
+    static const std::array<Coordinates2, 4> DiagonalDirections;
+
+private:
+    // 기물이 공격중인 위치 인터페이스로만 접근해야함.
+    std::vector<Coordinates2> mLocationBeingAttacked;
+    // 공격은 움직일 수 있는 위치 인터페이스로만 접근해야함.
+    std::vector<Coordinates2> mMoveLocation;
 };
 
 class Pawn : public Piece
@@ -66,23 +86,23 @@ public:
 
     // 해당 위치로 이동하는 함수. Piece::MovePieceTo 를 반드시 호출해야함.
     void MovePieceTo(const Coordinates2& nextPosition) override;
-    // Turn을 시작할때 호출되는 함수. Piece::StartTurn를 반드시 호출해야함.
+    // 턴이 시작하고 호출되는 가상함수
     void StartTurn() override;
-
     //Setter & Getter 
     bool IsMoveTwoSquare() { return mbMoveTwoSquare; }
-    
+    // 다음 위치를 탐색하는 함수
+    void SearchAttackAndMoveLocation() override;
+
 private:
-    // 다음 위치를 갱신하는 함수
-    void UpdateNextPosition() override;
+
     // 이번 움직임이 앙파상이라면 true
-    bool IsThisMoveEnpassant(const Coordinates2& side);
+    bool IsThisMovementEnpassant(const Coordinates2& side);
     // 앙파상 실행
     void DoEnpassant(const Coordinates2& side);
-    // 폰의 다음 위치를 갱신하는 helper 함수들
-    void UpdateForwardDirection();
-    void UpdateDiagonalDirection(const Coordinates2& sideDirection);
-    void UpdateEnpassantDirection(const Coordinates2& sideDirection);
+    // 폰의 다음 위치를 탐색하는 helper 함수들
+    void SearchForwardDirection();
+    void SearchDiagonalDirection(const Coordinates2& direction);
+    void SearchEnpassantDirection(const Coordinates2& direction);
 
     // 폰의 이동 방향(black일경우 + / whtie 일경우 -)
     Coordinates2 mMoveDirection;
@@ -92,6 +112,8 @@ private:
     bool mbMoveTwoSquare;
     // 이번턴에 앙파상을 시전할 수 있다면 true
     bool mbCanEnpassant;
+
+
 };
 
 class Knight : public Piece
@@ -100,7 +122,10 @@ public:
     Knight(class Game& game, class GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size = 128);
     ~Knight();
 
-    void UpdateNextPosition() override {}
+    void SearchAttackAndMoveLocation() override;
+
+private:
+    static const std::array<Coordinates2, 8> KnightMovements;
 };
 
 class Bishop : public Piece
@@ -109,7 +134,7 @@ public:
     Bishop(class Game& game, class GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size = 128);
     ~Bishop();
 
-    void UpdateNextPosition() override {}
+    void SearchAttackAndMoveLocation() override;
 };
 
 class Rook : public Piece
@@ -118,7 +143,9 @@ public:
     Rook(class Game& game, class GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size = 128);
     ~Rook();
 
-    void UpdateNextPosition() override {}
+    void SearchAttackAndMoveLocation() override;
+private:
+    // TODO: 캐슬링 구현
 };
 
 
@@ -128,7 +155,7 @@ public:
     Queen(class Game& game, class GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size = 128);
     ~Queen();
 
-    void UpdateNextPosition() override {}
+    void SearchAttackAndMoveLocation() override;
 };
 
 
@@ -138,7 +165,9 @@ public:
     King(class Game& game, class GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size = 128);
     ~King();
 
-    void UpdateNextPosition() override {}
+    void SearchAttackAndMoveLocation() override;
+private:
+    void SearchAdjacent(const Coordinates2& direction);
 };
 
 

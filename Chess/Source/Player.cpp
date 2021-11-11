@@ -82,9 +82,36 @@ void Player::LeftClickDown(const std::shared_ptr<Square>& square)
 
 void Player::StartTurn()
 {
+    // 모든 기물들에게 turn이 시작되었음을 알림. (각 함수들은 별도의 반복문에서 회출됨)
     for (auto& piece : mPieces)
     {
-        piece->StartTurn();
+        piece->StartTurn(); // 폰의 앙파상을 위해서 사용됨
+    }
+    // 현재 공격중이 모든 지역을 공격 해제, 이동 가능 지역 해제
+    for (auto& piece : mPieces)
+    {
+        piece->ReleaseFromAllAttacks();
+        piece->ReleaseMoveLocation();
+    }
+    // 새롭게 공격 지역 탐색
+    for (auto& piece : mPieces)
+    {
+        piece->SearchAttackAndMoveLocation();
+    }
+}
+
+void Player::EndTurn()
+{
+    // 현재 공격중이 모든 지역을 공격 해제, 이동 가능 지역 해제
+    for (auto& piece : mPieces)
+    {
+        piece->ReleaseFromAllAttacks();
+        piece->ReleaseMoveLocation();
+    }
+    // 새롭게 공격 지역 및 이동 지역 탐색
+    for (auto& piece : mPieces)
+    {
+        piece->SearchAttackAndMoveLocation();
     }
 }
 

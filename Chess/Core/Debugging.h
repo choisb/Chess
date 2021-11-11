@@ -29,3 +29,5 @@
 #else
 #define FUNC_LOG() 
 #endif
+
+#define DEBUGGING_ATTACK_SPRITE 0

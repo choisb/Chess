@@ -29,6 +29,7 @@ void GameManager::Initialize()
 {
     // White player부터 게임 시작
     mbBlackTurn = false;
+    mBlackPlayer.EndTurn();
     mWhitePlayer.StartTurn();
 }
 void GameManager::CreateBoard()
@@ -68,10 +69,12 @@ void GameManager::NextTurn()
     mbBlackTurn = !mbBlackTurn;
     if (mbBlackTurn)
     {
+        mWhitePlayer.EndTurn();
         mBlackPlayer.StartTurn();
     }
     else
     {
+        mBlackPlayer.EndTurn();
         mWhitePlayer.StartTurn();
     }
 }
@@ -82,6 +85,7 @@ void GameManager::LeftClickDown(const Coordinates2& position)
     const int col = static_cast<int>(position.x / mSquareSize);
     const int row = static_cast<int>(position.y / mSquareSize);
 
+    SDL_Log("selecte square: (%d, %d) / Color: %d / Type: %d", col, row, mBoard[row][col]->GetColor(), mBoard[row][col]->GetTypeOfPiece());
     // 클릭된 square를 현재 턴인 player에게 전달
     if (mbBlackTurn)
         mBlackPlayer.LeftClickDown(mBoard[row][col]);

@@ -5,6 +5,11 @@
 #include "Core/SpriteComponent.h"
 #include "Core/Game.h"
 #include "Core/Math.h"
+
+const std::array<Coordinates2, 4> Piece::StraightDirections = { Coordinates2(1,0), Coordinates2(-1,0), Coordinates2(0,1), Coordinates2(0,-1) };
+const std::array<Coordinates2, 4> Piece::DiagonalDirections = { Coordinates2(1,1), Coordinates2(-1,1), Coordinates2(1,-1), Coordinates2(-1,-1) };
+
+
 Piece::Piece(Game& game, GameManager& gameManager, PieceType type, PieceColor inColor, Coordinates2 inPosition, size_t size)
     :Actor(game)
     ,mGameManager(gameManager)
@@ -14,9 +19,9 @@ Piece::Piece(Game& game, GameManager& gameManager, PieceType type, PieceColor in
     ,mSize(size)
 {
     mSpriteComponent = CreateComponent<SpriteComponent>(*this, 70);
-    mEnemyColor = PieceColor::Black;
-    if (mColor == PieceColor::Black)
-        mEnemyColor = PieceColor::White;
+
+    if (mColor == PieceColor::Black) mEnemyColor = PieceColor::White;
+    else mEnemyColor = PieceColor::Black;
 }
 Piece::~Piece()
 {
@@ -48,25 +53,28 @@ void Piece::MovePieceTo(const Coordinates2& nextPosition)
     square->Unselected();
 
     // 이동하기 전 이동 후보지로 마킹되어있던 Square 모두 후보설정 해제
-    for (const auto& next : mNextPosition)
+    for (const auto& candidate : mMoveLocation)
     {
-        mGameManager.GetSquare(next)->CancelCandidate();
+        mGameManager.GetSquare(candidate)->CancelCandidate();
     }
 
     // 해당 위치로 이동
     mCurrentPosition = nextPosition;
     SetActorLocation(mGameManager.GetActorLocationOf(mCurrentPosition));
 
-    // 해당 위치 칸에 표시
+    // 이동하려는 square
     square = mGameManager.GetSquare(mCurrentPosition);
+    // 이동하려는 square에 기물이 있는경우 기물 파괴
+    if (auto currentPiece = square->GetPiece().lock())
+    {
+        currentPiece->IsDestroyed();
+    }
+    // 점유 표시
     square->Occupied(std::static_pointer_cast<Piece>(shared_from_this()));
+
 }
-void Piece::StartTurn()
-{
-    //기물의 next position을 갱신
-    UpdateNextPosition();
-}
-void Piece::BeAttacked()
+
+void Piece::IsDestroyed()
 {
     SetState(State::EDead);
     mGameManager.RemovePiece(std::static_pointer_cast<Piece>(shared_from_this()), mColor);
@@ -77,7 +85,7 @@ void Piece::Selected()
     // 현재 위치 Square 선택
     mGameManager.GetSquare(mCurrentPosition)->Selected();
     // 후보 위치 Square 모두 후보지로 선택
-    for (auto& next : mNextPosition)
+    for (auto& next : mMoveLocation)
     {
         mGameManager.GetSquare(next)->BeCandidate();
     }
@@ -88,9 +96,64 @@ void Piece::Unselected()
     // 현재 위치 Square 선택 해제
     mGameManager.GetSquare(mCurrentPosition)->Unselected();
     // 후보 위치 Square 모두 후보지 해제
-    for (auto& next : mNextPosition)
+    for (auto& next : mMoveLocation)
     {
         mGameManager.GetSquare(next)->CancelCandidate();
+    }
+}
+
+void Piece::AddAttackLocation(const Coordinates2 & position)
+{
+    //TODO: 해당지역에 킹이 있다면 체크 발생
+    mGameManager.GetSquare(position)->BeAttackedBy(mColor);
+    mLocationBeingAttacked.push_back(position);
+}
+
+void Piece::ReleaseFromAllAttacks()
+{
+    for (auto& position : mLocationBeingAttacked)
+    {
+        mGameManager.GetSquare(position)->ReleaseFromAttackBy(mColor);
+    }
+    mLocationBeingAttacked.clear();
+}
+
+void Piece::AddMoveLocation(const Coordinates2 & position)
+{
+    //TODO: 이동 했을때 체크가 발생하는지 확인
+    mMoveLocation.push_back(position);
+}
+
+void Piece::ReleaseMoveLocation()
+{
+    mMoveLocation.clear();
+}
+
+void Piece::SearchInTheDirection(const Coordinates2 & direction)
+{
+    auto next = mCurrentPosition + direction;
+    while (GameManager::ValidIndex(next))
+    {
+        PieceColor nextColor = mGameManager.GetSquare(next)->GetColor();
+        if (nextColor == PieceColor::Default_MAX)  // 빈칸: 공격, 이동 가능 탐색 계속
+        {
+            // TODO: 이동했을 때 체크가 발생하는지 확인
+            AddAttackLocation(next);
+            AddMoveLocation(next);
+            next += direction;
+        }
+        else if (nextColor == mEnemyColor) // 적군: 공격, 이동 가능, 탐색 종료
+        {
+            // TODO: 이동했을 때 체크가 발생하는지 확인
+            AddAttackLocation(next);
+            AddMoveLocation(next);
+            break;
+        }
+        else // 아군: 공격만 가능
+        {
+            AddAttackLocation(next);
+            break;
+        }
     }
 }
 
@@ -125,12 +188,11 @@ void Pawn::MovePieceTo(const Coordinates2& nextPosition) /*override*/
 {
     if (Math::Abs(nextPosition.y - mCurrentPosition.y) == 2)
         mbMoveTwoSquare = true;
-    Coordinates2 side(nextPosition.x, mCurrentPosition.y);
 
     // 앙파상 판정, 앙파상이 맞다면 앙파상 실행
-    if (IsThisMoveEnpassant(side))
+    if (IsThisMovementEnpassant(nextPosition))
     {
-        DoEnpassant(side);
+        DoEnpassant(nextPosition);
     }
 
     // 이동
@@ -140,8 +202,9 @@ void Pawn::MovePieceTo(const Coordinates2& nextPosition) /*override*/
     mbFirstMove = true;
     //TODO: 폰 프로모션 기능 추가, UI 기능 구현 후 적용 
 }
-bool Pawn::IsThisMoveEnpassant(const Coordinates2& side)
+bool Pawn::IsThisMovementEnpassant(const Coordinates2& nextPosition)
 {
+    Coordinates2 side(nextPosition.x, mCurrentPosition.y);
     auto sidePiece = mGameManager.GetSquare(side)->GetPiece().lock();
     // 대각선으로 이동하고, 이동하는 방향 옆에 기물이 존재하며, 그 기물이 적군 이며, 적군 기물이 폰인경우
     if (side.x != mCurrentPosition.x && sidePiece && sidePiece->GetColor() != mColor && sidePiece->GetType() == PieceType::Pawn)
@@ -155,74 +218,94 @@ bool Pawn::IsThisMoveEnpassant(const Coordinates2& side)
     }
     return false;
 }
-void Pawn::DoEnpassant(const Coordinates2& side)
+void Pawn::DoEnpassant(const Coordinates2& nextPosition)
 {
+    Coordinates2 side(nextPosition.x, mCurrentPosition.y);
     auto enemyPawn = std::static_pointer_cast<Pawn>(mGameManager.GetSquare(side)->GetPiece().lock());
-    enemyPawn->BeAttacked();
+    enemyPawn->IsDestroyed();
 }
 void Pawn::StartTurn()
 {
     Piece::StartTurn();
     mbMoveTwoSquare = false;
 }
-void Pawn::UpdateNextPosition()
+void Pawn::SearchAttackAndMoveLocation()
 {
-    mNextPosition.clear();
-    UpdateForwardDirection();
-    UpdateDiagonalDirection(Coordinates2(1, 0)); // 우측 대각선 방향 탐색
-    UpdateDiagonalDirection(Coordinates2(-1, 0)); // 좌측 대각선 방향 탐색
-    UpdateEnpassantDirection(Coordinates2(1,0)); // 우측방향 앙파상
-    UpdateEnpassantDirection(Coordinates2(-1,0)); // 좌측방향 앙파상
+    SearchForwardDirection();
+    SearchDiagonalDirection(Coordinates2(1, mMoveDirection.y)); // 우측 대각선 방향 탐색
+    SearchDiagonalDirection(Coordinates2(-1, mMoveDirection.y)); // 좌측 대각선 방향 탐색
+    SearchEnpassantDirection(Coordinates2(1, mMoveDirection.y)); // 우측방향 앙파상
+    SearchEnpassantDirection(Coordinates2(-1, mMoveDirection.y)); // 좌측방향 앙파상
 }
 
-void Pawn::UpdateForwardDirection()
-{
-    // 전방이 비었다면
-    Coordinates2 forward = mCurrentPosition + mMoveDirection;
 
-    if (GameManager::ValidIndex(forward) && mGameManager.GetSquare(forward)->IsEmpty())
+
+void Pawn::SearchForwardDirection()
+{
+    // TODO: 이동했을 때 체크가 발생하는지 확인
+    // 전방이 비었다면
+    Coordinates2 forwardMovement = mCurrentPosition + mMoveDirection;
+
+    if (GameManager::ValidIndex(forwardMovement) && mGameManager.GetSquare(forwardMovement)->IsEmpty())
     {
-        mNextPosition.push_back(forward);
-        if (mbFirstMove == false) // 한번도 움직인적 없다면 두칸 움직일 수 있다.
+        AddMoveLocation(forwardMovement); // 공격은 할 수 없지만 이동은 할 수 있기 때문에 Move 배열에 추가
+        if (mbFirstMove == false) // 한번도 움직인적이 없다면 두칸 움직일 수 있다.
         {
-            forward += mMoveDirection;
-            if (mGameManager.GetSquare(forward)->IsEmpty())
-                mNextPosition.push_back(forward);
+            forwardMovement += mMoveDirection;
+            if (mGameManager.GetSquare(forwardMovement)->IsEmpty())
+                AddMoveLocation(forwardMovement); // 공격은 할 수 없지만 이동은 할 수 있기 때문에 Move 배열에 추가
         }
     }
 }
 
-void Pawn::UpdateDiagonalDirection(const Coordinates2& sideDirection)
+void Pawn::SearchDiagonalDirection(const Coordinates2& direction)
 {
-    const Coordinates2 diagonal = mCurrentPosition + mMoveDirection - sideDirection;
-    // 대각선 방향이 범위를 벗어났다면 탐색 종료
-    if (!GameManager::ValidIndex(diagonal)) return;
+    // TODO: 이동했을 때 체크가 발생하는지 확인
+    const Coordinates2 diagonalMovement = mCurrentPosition + direction;
+    // 대각선 방향이 체스판 범위를 벗어났다면 탐색 종료
+    if (!GameManager::ValidIndex(diagonalMovement)) return;
     //대각선에 적군이 있다면
-    if (mGameManager.GetSquare(diagonal)->GetColor() == mEnemyColor)
+    if (mGameManager.GetSquare(diagonalMovement)->GetColor() == mEnemyColor)
     {
-        mNextPosition.push_back(diagonal);
+        AddAttackLocation(diagonalMovement); // 공격 가능 지역 추가
+        AddMoveLocation(diagonalMovement); // 이동 가능 지역에 추가
+    }
+    else // 비었거나 아군이 있다면
+    {
+        AddAttackLocation(diagonalMovement); // 공격 가능 지역 추가
     }
 }
 
-void Pawn::UpdateEnpassantDirection(const Coordinates2& sideDirection)
+void Pawn::SearchEnpassantDirection(const Coordinates2& direction)
 {
-    const Coordinates2 side = mCurrentPosition + sideDirection;
-    // 보드 범위를 벗어날 경우 종료
-    if (!GameManager::ValidIndex(side)) return;
+    // TODO: 이동했을 때 체크가 발생하는지 확인
 
-    auto sidePiece = mGameManager.GetSquare(side)->GetPiece().lock();
-    // direction방향의 옆쪽 piece가 존재하고, piece 타입이 pawn 이라면
-    if (sidePiece && sidePiece->GetType() == PieceType::Pawn)
+    const Coordinates2 sidePosition(direction.x + mCurrentPosition.x, mCurrentPosition.y);
+    const Coordinates2 movePosition(direction + mCurrentPosition);
+    // 보드 범위를 벗어날 경우 종료
+    if (!GameManager::ValidIndex(sidePosition)) return;
+
+    auto sidePiece = mGameManager.GetSquare(sidePosition)->GetPiece().lock();
+    // direction방향의 옆쪽 piece가 존재하고, piece 타입이 pawn 이고 적군이라면
+    if (sidePiece && sidePiece->GetType() == PieceType::Pawn && sidePiece->GetColor() == mEnemyColor)
     {
-        auto pawn = std::static_pointer_cast<Pawn>(sidePiece);
-        if (pawn->IsMoveTwoSquare()) // 앙파상 가능
-            mNextPosition.push_back(side + mMoveDirection);
+        auto enemyPawn = std::static_pointer_cast<Pawn>(sidePiece);
+        if (enemyPawn->IsMoveTwoSquare()) // 앙파상 가능
+        {
+            AddAttackLocation(sidePosition);
+            AddMoveLocation(movePosition);
+        }
     }
 }
+
+const std::array<Coordinates2, 8> Knight::KnightMovements 
+    = { Coordinates2(1, 2), Coordinates2(2, 1), Coordinates2(-1, 2), Coordinates2(2, -1), 
+    Coordinates2(1, -2), Coordinates2(-2, 1), Coordinates2(-1, -2), Coordinates2(-2, -1) };
 
 // Knight 구현
 Knight::Knight(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Knight, inColor, inPosition, size)
+    
 {
     auto sc = GetSpriteComponent().lock();
     if (sc)
@@ -238,6 +321,29 @@ Knight::Knight(Game& game, GameManager& gameManager, PieceColor inColor, Coordin
 Knight::~Knight()
 {
 
+}
+void Knight::SearchAttackAndMoveLocation()
+{
+    for (int i = 0; i < 8; ++i)
+    {
+        Coordinates2 next = mCurrentPosition + KnightMovements[i];
+        // TODO: 이동했을 때 체크가 발생하는지 확인
+        if (GameManager::ValidIndex(next)) // 유효한 좌표이며, 
+        {
+            PieceColor piceColor = mGameManager.GetSquare(next)->GetColor();
+            // 해당 칸에 아군이 있다면 공격은 가능하지만 이동은 불가능
+            if (piceColor == mColor)
+            {
+                AddMoveLocation(next);
+            }
+            else // 해당 칸에 적군이 있거나 비어있다면, 공격 이동 모두 가능
+            {
+                AddAttackLocation(next);
+                AddMoveLocation(next);
+            }
+        }
+
+    }
 }
 
 // Bishop 구현
@@ -260,6 +366,16 @@ Bishop::~Bishop()
 
 }
 
+void Bishop::SearchAttackAndMoveLocation()
+{
+    // 대각선 4방향 모두 탐색
+    for (int i = 0; i < 4; ++i)
+    {
+        SearchInTheDirection(Piece::DiagonalDirections[i]);
+    }
+}
+
+
 // Rook 구현
 Rook::Rook(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::Rook, inColor, inPosition, size)
@@ -279,6 +395,17 @@ Rook::~Rook()
 {
 
 }
+
+void Rook::SearchAttackAndMoveLocation()
+{
+    // 직선 4방향 모두 탐색
+    for (int i = 0; i < 4; ++i)
+    {
+        SearchInTheDirection(Piece::StraightDirections[i]);
+    }
+}
+
+
 
 // Queen 구현
 Queen::Queen(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
@@ -300,6 +427,16 @@ Queen::~Queen()
 
 }
 
+void Queen::SearchAttackAndMoveLocation()
+{
+    // 직선 4방향, 대각선 4방향 모두 탐색
+    for (int i = 0; i < 4; ++i)
+    {
+        SearchInTheDirection(Piece::StraightDirections[i]);
+        SearchInTheDirection(Piece::DiagonalDirections[i]);
+    }
+}
+
 // King 구현
 King::King(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates2 inPosition, size_t size /*=128*/)
     : Piece(game, gameManager, PieceType::King, inColor, inPosition, size)
@@ -318,4 +455,31 @@ King::King(Game& game, GameManager& gameManager, PieceColor inColor, Coordinates
 King::~King()
 {
 
+}
+void King::SearchAttackAndMoveLocation()
+{
+    // 인접위치만 탐색
+    for (int i = 0; i < 4; ++i)
+    {
+        SearchAdjacent(DiagonalDirections[i]); // 대각선 4방향
+        SearchAdjacent(StraightDirections[i]); // 직선 4방향
+    }
+}
+void King::SearchAdjacent(const Coordinates2& direction)
+{
+    auto next = mCurrentPosition + direction;
+    if (GameManager::ValidIndex(next)) // 유효한 위치일때
+    {
+        PieceColor nextColor = mGameManager.GetSquare(next)->GetColor();
+        if (nextColor == mColor)  // 아군: 공격만 가능
+        {
+            AddAttackLocation(next);
+        }
+        else // 빈칸or 적군: 공격, 이동 가능
+        {
+            // TODO: 이동했을 때 체크가 발생하는지 확인
+            AddAttackLocation(next);
+            AddMoveLocation(next);
+        }
+    }
 }

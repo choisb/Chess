@@ -21,6 +21,8 @@ public:
     void LeftClickDown(const std::shared_ptr<Square>& square);
     // 플레이어의 차례가 시작될 경우 호출됨. 차례가 시작되고 필요한 초기화 기능을 호출할 수 있음.
     void StartTurn();
+    // 플레이어 차례가 종료될때 호출됨. 공격가능 위치와 이동가능 위치 재계산
+    void EndTurn();
 private:
     // 첫번째 기물 선택
     void SelectPieceForMove(const std::shared_ptr<Piece>& piece);

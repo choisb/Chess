@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include "SDL/SDL.h"
-#include "Log.h"
+#include "Debugging.h"
 class Actor;
 class SpriteComponent;
 class Renderer;
