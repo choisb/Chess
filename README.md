@@ -20,8 +20,10 @@
 - 모든 기물은 게임 규칙에 맞는 움직임을 가집니다.
 - 앙파상, 캐슬링 등 특수한 행마에 대해서도 구현하였습니다.
 
+___
 
 ## 프레임워크 Core 구조
+- 지금까지 제작한 프레임워크의 구조는 다음과 같습니다.
 
 ![CoreClass.png](./img/CoreClass.png)
 
@@ -84,9 +86,12 @@ std::shared_ptr<T> Game::CreateActor(Param&&... _Args)
 - GameManager를 통해서 게임의 프레임워크 코드와 게임 로직 코드를 분리 및 연결 할 수 있습니다.
 - Game이 생성될 때 GameManager가 생성되며 게임에 필요한 데이터들을 로딩 합니다. 이번 2D Chess 프로젝트에서는 게임에 필요한 객체들을 모두 이곳에서 생성합니다.
 
-# Chess 2D 게임 구조
+___
 
-![ChessGameClass.png](./ChessGameClass.png)
+# Chess 2D 게임 구조
+- Chess 2D 게임 구조는 다음과 같습니다.
+
+![ChessGameClass.png](./img/ChessGameClass.png)
 
 ## Piece Class
 
