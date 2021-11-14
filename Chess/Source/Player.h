@@ -24,7 +24,7 @@ public:
     // 플레이어 차례가 종료될때 호출됨. 공격가능 위치와 이동가능 위치 재계산
     void EndTurn();
     // 킹이 체크될경우 호출
-    void BeCheck();
+    void BeChecked();
     // 킹이 체크에서 해제될 경우 호출
     void ReleaseCheck();
 

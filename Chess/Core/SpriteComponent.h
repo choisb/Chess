@@ -10,6 +10,7 @@ public:
     ~SpriteComponent();
     void Initialize() override;
     void Shutdown() override;
+    void Update(float deltaTime) override {}
     void Draw(SDL_Renderer* renderer);
     
     // Setter & Getter

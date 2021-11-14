@@ -55,7 +55,7 @@ void Piece::MovePieceTo(const Coordinates2& nextPosition)
     square->Unselected();
 
     // 이동하기 전 이동 후보지로 마킹되어있던 Square 모두 후보설정 해제
-    for (const auto& candidate : mMoveLocation)
+    for (const auto& candidate : mMoveLocations)
     {
         mGameManager.GetSquare(candidate)->CancelCandidate();
     }
@@ -69,7 +69,7 @@ void Piece::MovePieceTo(const Coordinates2& nextPosition)
     // 이동하려는 square에 기물이 있는경우 기물 파괴
     if (auto currentPiece = square->GetPiece().lock())
     {
-        currentPiece->IsDestroyed();
+        currentPiece->BeDestroyed();
     }
     // 점유 표시
     square->Occupied(std::static_pointer_cast<Piece>(shared_from_this()));
@@ -78,9 +78,9 @@ void Piece::MovePieceTo(const Coordinates2& nextPosition)
     mbFirstMove = false;
 }
 
-void Piece::IsDestroyed()
+void Piece::BeDestroyed()
 {
-    ReleaseFromAllAttacks();
+    ReleaseAttackedLocation();
     ReleaseMoveLocation();
     SetState(State::EDead);
     mGameManager.RemovePiece(std::static_pointer_cast<Piece>(shared_from_this()), mColor);
@@ -91,7 +91,7 @@ void Piece::Selected()
     // 현재 위치 Square 선택
     mGameManager.GetSquare(mCurrentPosition)->Selected();
     // 후보 위치 Square 모두 후보지로 선택
-    for (auto& next : mMoveLocation)
+    for (auto& next : mMoveLocations)
     {
         mGameManager.GetSquare(next)->BeCandidate();
     }
@@ -102,7 +102,7 @@ void Piece::Unselected()
     // 현재 위치 Square 선택 해제
     mGameManager.GetSquare(mCurrentPosition)->Unselected();
     // 후보 위치 Square 모두 후보지 해제
-    for (auto& next : mMoveLocation)
+    for (auto& next : mMoveLocations)
     {
         mGameManager.GetSquare(next)->CancelCandidate();
     }
@@ -113,30 +113,30 @@ void Piece::AddAttackLocation(const Coordinates2 & position)
     auto square = mGameManager.GetSquare(position);
     // 공격하는 지역이 적군의 킹이 있는 곳이라면 Check 발생
     if (square->GetColor() == mEnemyColor && square->GetTypeOfPiece() == PieceType::King)
-        mGameManager.Check(mEnemyColor);
+        mGameManager.BeChecked(mEnemyColor);
 
     square->BeAttackedBy(mColor);
-    mLocationBeingAttacked.push_back(position);
+    mAttackedLocations.push_back(position);
 }
 
-void Piece::ReleaseFromAllAttacks()
+void Piece::ReleaseAttackedLocation()
 {
-    for (auto& position : mLocationBeingAttacked)
+    for (auto& position : mAttackedLocations)
     {
         mGameManager.GetSquare(position)->ReleaseFromAttackBy(mColor);
     }
-    mLocationBeingAttacked.clear();
+    mAttackedLocations.clear();
 }
 
 void Piece::AddMoveLocation(const Coordinates2 & position)
 {
     // TODO: 이동 가능하다면 즉, 이동했을 때 체크가 발생하지 않는다면 이동
-    mMoveLocation.push_back(position);
+    mMoveLocations.push_back(position);
 }
 
 void Piece::ReleaseMoveLocation()
 {
-    mMoveLocation.clear();
+    mMoveLocations.clear();
 }
 
 void Piece::SearchInTheDirection(const Coordinates2 & direction)
@@ -234,7 +234,7 @@ void Pawn::DoEnpassant(const Coordinates2& nextPosition)
 {
     Coordinates2 side(nextPosition.x, mCurrentPosition.y);
     auto enemyPawn = std::static_pointer_cast<Pawn>(mGameManager.GetSquare(side)->GetPiece().lock());
-    enemyPawn->IsDestroyed();
+    enemyPawn->BeDestroyed();
 }
 void Pawn::StartTurn()
 {

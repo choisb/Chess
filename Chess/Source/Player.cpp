@@ -91,7 +91,7 @@ void Player::StartTurn()
     // 현재 공격중이 모든 지역을 공격 해제, 이동 가능 지역 해제
     for (auto& piece : mPieces)
     {
-        piece->ReleaseFromAllAttacks();
+        piece->ReleaseAttackedLocation();
         piece->ReleaseMoveLocation();
     }
     // 새롭게 공격 지역 탐색
@@ -106,7 +106,7 @@ void Player::EndTurn()
     // 현재 공격중이 모든 지역을 공격 해제, 이동 가능 지역 해제
     for (auto& piece : mPieces)
     {
-        piece->ReleaseFromAllAttacks();
+        piece->ReleaseAttackedLocation();
         piece->ReleaseMoveLocation();
     }
     // 새롭게 공격 지역 및 이동 지역 탐색
@@ -116,7 +116,7 @@ void Player::EndTurn()
     }
 }
 
-void Player::BeCheck()
+void Player::BeChecked()
 {
     mbIsCheck = true;
 }

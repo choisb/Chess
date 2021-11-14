@@ -21,7 +21,7 @@ public:
     // 턴이 시작될 때 호출되는 가상함수
     virtual void StartTurn() {}
     // 기물이 공격받을경우 호출
-    void IsDestroyed();
+    void BeDestroyed();
 
     // 기물이 선택될 경우 호출됨 (폰을 위한 가상화)
     void Selected();
@@ -30,16 +30,16 @@ public:
 
     // 해당 지역을 공격한다.
     void AddAttackLocation(const Coordinates2& position);
-    // 폰의 mOnlyMoveLocation 초기화를 위해 가상화
-    void ReleaseFromAllAttacks();
+    // 공격중인 지역을 모두 해제
+    void ReleaseAttackedLocation();
 
     // 폰의 이동 배열에 추가하는 함수
     void AddMoveLocation(const Coordinates2& position);
-    // mMoveLocation 배열 초기화
+    // mMoveLocations 배열 초기화
     void ReleaseMoveLocation();
 
 
-    // 공격 al가능 지역을 모두 탐색
+    // 공격 가능 지역을 모두 탐색
     virtual void SearchAttackAndMoveLocation() = 0;
 
     // Getter & Setter
@@ -78,9 +78,9 @@ protected:
 
 private:
     // 기물이 공격중인 위치 인터페이스로만 접근해야함.
-    std::vector<Coordinates2> mLocationBeingAttacked;
+    std::vector<Coordinates2> mAttackedLocations;
     // 공격은 움직일 수 있는 위치 인터페이스로만 접근해야함.
-    std::vector<Coordinates2> mMoveLocation;
+    std::vector<Coordinates2> mMoveLocations;
 };
 
 class Pawn : public Piece

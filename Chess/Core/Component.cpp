@@ -18,11 +18,4 @@ Component::~Component()
     mOwner.GetGame().IncreaseDestroyedComponentCount();
     //SDL_Log("~Component()");
 }
-void Component::Initialize()
-{
 
-}
-void Component::Update(float deltaTime)
-{
-
-}

@@ -24,12 +24,10 @@ SpriteComponent::~SpriteComponent()
 }
 void SpriteComponent::Initialize()
 {
-    Component::Initialize();
     mOwner.GetGame().GetRenderer()->AddSpriteToArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
 }
 void SpriteComponent::Shutdown()
 {
-    Component::Shutdown();
     mOwner.GetGame().GetRenderer()->RemoveSpriteFromArray(std::static_pointer_cast<SpriteComponent>(shared_from_this()));
 }
 void SpriteComponent::SetTexture(SDL_Texture* texture)

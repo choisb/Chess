@@ -58,16 +58,16 @@ bool GameManager::ValidIndex(const Coordinates2 & position)
 {
     return (position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8);
 }
-void GameManager::Check(PieceColor color)
+void GameManager::BeChecked(PieceColor color)
 {
     if (color == PieceColor::Black)
     {
-        mBlackPlayer.BeCheck();
+        mBlackPlayer.BeChecked();
         SDL_Log("Black King Check");
     }
     else
     {
-        mWhitePlayer.BeCheck();
+        mWhitePlayer.BeChecked();
         SDL_Log("White King Check");
     }
 }
